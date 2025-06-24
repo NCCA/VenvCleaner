@@ -4,7 +4,7 @@
 
 This is 100% AI written / Vibe Coded. This initial snapshot has been developed as an expermiment. I have not looked at any of the code! I will post write ups about this at a later date with links etc. What follows is also AI genrated and I've not read it yet!
 
-See [VenvCleaner](VenvCleaner.md) for more info and [AIChat1](AIChat1.md) for the full AI conversation.
+See [VenvCleaner](https://nccastaff.bournemouth.ac.uk/jmacey/post/VenvCleaner/VenvCleaner/) for more info and [AIChat1](AIChat1.md) for the full AI conversation.
 
 ## About
 

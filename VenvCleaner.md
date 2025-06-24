@@ -129,5 +129,7 @@ Next I wanted to add a gui mode, however after a little bit of reading I decided
 I have quite a large context window now (144k/200k) so this may cause some issues. but I added the prompt
 
 {{< highlight text >}}
-
+Now write a full gui version of the tool using egui. Try to immitate the tui version.
 {{< /highlight  >}}
+
+I started off the process and made more coffee! It took a while and had a few initial compilation errors but now I have a full gui!
