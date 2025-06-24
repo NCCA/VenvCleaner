@@ -8,7 +8,7 @@ The following items were attached by the user. They are up-to-date and don't nee
 
 <files>
 ```VenvCleaner/.rules
-You are to use rust as the programming language. 
+You are to use rust as the programming language.
 You can use any libraries that are required and these  can be installed via cargo
 
 All code should have full comments and explainations and use the rust styleguide
@@ -2083,7 +2083,7 @@ Edited VenvCleaner/Cargo.toml:
 @@ -48,6 +48,9 @@
  log = "0.4"
  env_logger = "0.10"
- 
+
 +[dev-dependencies]
 +tempfile = "3.8"
 +
@@ -2149,7 +2149,7 @@ Edited VenvCleaner/README.md:
 @@ -1,3 +1,249 @@
 -# Venv Cleaner
 +# VenvCleaner
- 
+
 -A simple tool to help clean .venv files
 +A multi-mode Rust application to help manage and clean up Python virtual environment folders (.venv) on Mac and Linux systems.
 +
@@ -2238,7 +2238,7 @@ Edited VenvCleaner/README.md:
 +# Output example:
 +# Found .venv directories:
 +# ================================================================================
-+# Location                                                     Size        Created              Last Used           
++# Location                                                     Size        Created              Last Used
 +# ------------------------------------------------------------
 +# /home/user/projects/webapp                                   245.67 MB   2023-08-15 14:30:25  2024-01-10 09:15:42
 +# /home/user/projects/data-analysis                           1.23 GB     2023-09-01 11:20:10  2023-12-05 16:45:30
@@ -2256,7 +2256,7 @@ Edited VenvCleaner/README.md:
 +# 📏 Size: 156.45 MB
 +# 📅 Last used: 2023-07-15 12:30:25 (180 days ago)
 +# ⚠️  This .venv hasn't been used in over 90 days
-+# 
++#
 +# Delete this .venv directory? (y/N): y
 +# 🗑️  Deleting...
 +# ✅ Deleted successfully
@@ -2666,7 +2666,7 @@ Edited VenvCleaner/src/core/file_utils.rs:
  //!
  //! This module provides utility functions for file and directory operations,
  //! including calculating directory sizes and checking permissions.
- 
+
 -use std::path::Path;
 +use std::path::{Path, PathBuf};
  use std::fs;
@@ -2713,11 +2713,11 @@ Edited VenvCleaner/src/cli/mod.rs:
 ```diff
 @@ -284,7 +284,7 @@
          println!();
- 
+
          // Show current configuration
 -        println!("🔍 Searching in: {}", self.cleaner.base_directory().display().cyan());
 +        println!("🔍 Searching in: {}", self.cleaner.base_directory().display().to_string().cyan());
- 
+
          if self.cleaner.is_recursive() {
              println!("📂 Mode: {}", "Recursive search".yellow());
 
@@ -2761,11 +2761,11 @@ Edited VenvCleaner/src/main.rs:
 ```diff
 @@ -16,7 +16,7 @@
  mod core;
- 
+
  use cli::CliMode;
 -use core::{VenvCleaner, VenvCleanerError};
 +use core::VenvCleanerError;
- 
+
  /// Main entry point for the VenvCleaner application
  fn main() {
 
@@ -2813,9 +2813,9 @@ Edited VenvCleaner/src/cli/mod.rs:
  use indicatif::{ProgressBar, ProgressStyle};
 -use log::{info, debug, warn};
 +use log::info;
- 
+
  use crate::core::{VenvCleaner, VenvCleanerError, VenvInfo, Result};
- 
+
 
 ```
 
@@ -4403,7 +4403,7 @@ mod tests {
 </files>
 </context>
 
-develop the tui mode for this tool as at present only the cli works 
+develop the tui mode for this tool as at present only the cli works
 
 ## Agent
 
@@ -6657,17 +6657,17 @@ Edited VenvCleaner/src/main.rs:
 
 ```diff
 @@ -14,9 +14,13 @@
- 
+
  mod cli;
  mod core;
 +#[cfg(feature = "tui")]
 +mod tui;
- 
+
  use cli::CliMode;
  use core::VenvCleanerError;
 +#[cfg(feature = "tui")]
 +use tui::TuiMode;
- 
+
  /// Main entry point for the VenvCleaner application
  fn main() {
 @@ -115,10 +119,19 @@
@@ -6735,7 +6735,7 @@ Edited VenvCleaner/src/tui/mod.rs:
 ```diff
 @@ -5,24 +5,17 @@
  //! sorting options, and interactive deletion capabilities.
- 
+
  use std::io;
 -use std::time::{Duration, Instant};
 +use std::time::Duration;
@@ -6760,17 +6760,17 @@ Edited VenvCleaner/src/tui/mod.rs:
  };
 -use log::{info, debug, warn};
 +use log::info;
- 
+
  use crate::core::{VenvCleaner, VenvCleanerError, VenvInfo, Result};
- 
+
 @@ -344,7 +337,7 @@
      }
- 
+
      /// Draw the user interface
 -    fn draw_ui<B: Backend>(&mut self, f: &mut Frame<B>) {
 +    fn draw_ui(&mut self, f: &mut ratatui::Frame) {
          let size = f.size();
- 
+
          match self.app.state() {
 
 ```
@@ -6900,7 +6900,7 @@ Edited VenvCleaner/src/tui/ui.rs:
  //!
  //! This module handles all the UI rendering for the TUI interface, including
  //! the main screen, dialogs, progress bars, and help screens.
- 
+
  use ratatui::{
 -    backend::Backend,
 -    layout::{Alignment, Constraint, Direction, Layout, Rect, Margin},
@@ -6915,11 +6915,11 @@ Edited VenvCleaner/src/tui/ui.rs:
      },
 -    Frame,
  };
- 
+
  use crate::core::VenvInfo;
 @@ -33,7 +31,7 @@
  }
- 
+
  /// Draw the main browsing screen
 -pub fn draw_main_screen<B: Backend>(f: &mut Frame<B>, area: Rect, app: &mut TuiApp) {
 +pub fn draw_main_screen(f: &mut ratatui::Frame, area: Rect, app: &mut TuiApp) {
@@ -6928,7 +6928,7 @@ Edited VenvCleaner/src/tui/ui.rs:
          .constraints([
 @@ -66,7 +64,7 @@
  }
- 
+
  /// Draw the header section
 -fn draw_header<B: Backend>(f: &mut Frame<B>, area: Rect, app: &TuiApp) {
 +fn draw_header(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
@@ -6937,7 +6937,7 @@ Edited VenvCleaner/src/tui/ui.rs:
          app.sort_by().display_name(),
 @@ -103,7 +101,7 @@
  }
- 
+
  /// Draw the .venv directory list
 -fn draw_venv_list<B: Backend>(f: &mut Frame<B>, area: Rect, app: &mut TuiApp) {
 +fn draw_venv_list(f: &mut ratatui::Frame, area: Rect, app: &mut TuiApp) {
@@ -6946,7 +6946,7 @@ Edited VenvCleaner/src/tui/ui.rs:
      let selected_venvs = app.selected_venvs();
 @@ -216,7 +214,7 @@
  }
- 
+
  /// Draw the details panel
 -fn draw_details_panel<B: Backend>(f: &mut Frame<B>, area: Rect, app: &TuiApp) {
 +fn draw_details_panel(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
@@ -6955,25 +6955,25 @@ Edited VenvCleaner/src/tui/ui.rs:
          .constraints([
 @@ -233,7 +231,7 @@
  }
- 
+
  /// Draw details for the selected .venv directory
 -fn draw_selected_details<B: Backend>(f: &mut Frame<B>, area: Rect, app: &TuiApp) {
 +fn draw_selected_details(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
      let mut text = vec![];
- 
+
      if let Some(venv) = app.selected_venv() {
 @@ -305,7 +303,7 @@
  }
- 
+
  /// Draw summary statistics
 -fn draw_summary_stats<B: Backend>(f: &mut Frame<B>, area: Rect, app: &TuiApp) {
 +fn draw_summary_stats(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
      let stats = app.get_summary_stats();
- 
+
      let mut text = vec![
 @@ -348,7 +346,7 @@
  }
- 
+
  /// Draw the footer with status and shortcuts
 -fn draw_footer<B: Backend>(f: &mut Frame<B>, area: Rect, app: &TuiApp) {
 +fn draw_footer(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
@@ -6982,7 +6982,7 @@ Edited VenvCleaner/src/tui/ui.rs:
          .constraints([
 @@ -382,7 +380,7 @@
  }
- 
+
  /// Draw the loading screen
 -pub fn draw_loading_screen<B: Backend>(f: &mut Frame<B>, area: Rect, app: &TuiApp) {
 +pub fn draw_loading_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
@@ -6991,7 +6991,7 @@ Edited VenvCleaner/src/tui/ui.rs:
          .constraints([
 @@ -407,7 +405,7 @@
  }
- 
+
  /// Draw the confirmation dialog
 -pub fn draw_confirmation_dialog<B: Backend>(f: &mut Frame<B>, area: Rect, app: &TuiApp) {
 +pub fn draw_confirmation_dialog(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
@@ -7000,16 +7000,16 @@ Edited VenvCleaner/src/tui/ui.rs:
      let total_size: u64 = selected_venvs.iter().map(|v| v.size_bytes()).sum();
 @@ -462,7 +460,7 @@
  }
- 
+
  /// Draw the deletion progress dialog
 -pub fn draw_deletion_progress<B: Backend>(f: &mut Frame<B>, area: Rect, app: &TuiApp) {
 +pub fn draw_deletion_progress(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
      let progress = app.deletion_progress();
- 
+
      // Calculate dialog size
 @@ -496,7 +494,7 @@
  }
- 
+
  /// Draw the error screen
 -pub fn draw_error_screen<B: Backend>(f: &mut Frame<B>, area: Rect, app: &TuiApp) {
 +pub fn draw_error_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
@@ -7018,7 +7018,7 @@ Edited VenvCleaner/src/tui/ui.rs:
          .constraints([
 @@ -532,7 +530,7 @@
  }
- 
+
  /// Draw the help screen
 -pub fn draw_help_screen<B: Backend>(f: &mut Frame<B>, area: Rect) {
 +pub fn draw_help_screen(f: &mut ratatui::Frame, area: Rect) {
@@ -7624,7 +7624,7 @@ Edited VenvCleaner/src/tui/mod.rs:
 +                    }
 +                }
 +            })?;
- 
+
              // Handle events
              if let Ok(event) = self.event_handler.next() {
 @@ -213,7 +241,7 @@
@@ -7638,12 +7638,12 @@ Edited VenvCleaner/src/tui/mod.rs:
              }
 @@ -337,7 +365,7 @@
      }
- 
+
      /// Draw the user interface
 -    fn draw_ui(&mut self, f: &mut ratatui::Frame) {
 +    fn draw_ui(&self, f: &mut ratatui::Frame) {
          let size = f.size();
- 
+
          match self.app.state() {
 @@ -345,14 +373,14 @@
                  ui::draw_loading_screen(f, size, &self.app);
@@ -7711,10 +7711,10 @@ Edited VenvCleaner/src/tui/app.rs:
 +    /// Results of deletion operations (path, success)
 +    pub results: Vec<(String, bool)>,
  }
- 
+
  impl Default for DeletionProgress {
 @@ -290,7 +290,9 @@
- 
+
      /// Sort the current list of venvs
      fn sort_current_venvs(&mut self) {
 -        self.sort_venvs(&mut self.venvs);
@@ -7729,7 +7729,7 @@ Edited VenvCleaner/src/tui/app.rs:
          let mut successful = 0;
          let mut failed = 0;
 +        let mut simplified_results = Vec::new();
- 
+
 -        for (_, result) in &results {
 +        for (venv, result) in results {
              match result {
@@ -7745,7 +7745,7 @@ Edited VenvCleaner/src/tui/app.rs:
 +                }
              }
          }
- 
+
          self.deletion_progress = DeletionProgress {
 -            total: results.len(),
 -            completed: results.len(),
@@ -7756,7 +7756,7 @@ Edited VenvCleaner/src/tui/app.rs:
 -            results,
 +            results: simplified_results,
          };
- 
+
          // Update status message
 
 ```
@@ -7799,7 +7799,7 @@ Edited VenvCleaner/src/tui/ui.rs:
 ```diff
 @@ -31,7 +31,7 @@
  }
- 
+
  /// Draw the main browsing screen
 -pub fn draw_main_screen(f: &mut ratatui::Frame, area: Rect, app: &mut TuiApp) {
 +pub fn draw_main_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
@@ -7808,30 +7808,30 @@ Edited VenvCleaner/src/tui/ui.rs:
          .constraints([
 @@ -101,16 +101,18 @@
  }
- 
+
  /// Draw the .venv directory list
 -fn draw_venv_list(f: &mut ratatui::Frame, area: Rect, app: &mut TuiApp) {
 +fn draw_venv_list(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
      let venvs = app.venvs();
      let selected_index = app.selected_index();
      let selected_venvs = app.selected_venvs();
- 
+
 -    // Update visible items based on area height
 +    // Get visible range without mutating app
      let list_height = area.height.saturating_sub(2); // Account for borders
 -    app.set_visible_items(list_height as usize);
 +    let visible_items = list_height as usize;
- 
+
 -    let (start, end) = app.visible_range();
 +    let scroll_offset = app.scroll_offset();
 +    let start = scroll_offset;
 +    let end = (start + visible_items).min(venvs.len());
      let visible_venvs = &venvs[start..end];
- 
+
      let items: Vec<ListItem> = visible_venvs
 @@ -140,7 +142,7 @@
              }
- 
+
              // Path
 -            let path_text = format_path_for_display(venv.location(), 40);
 +            let path_text = format_path_for_display(&venv.location(), 40);
@@ -7841,7 +7841,7 @@ Edited VenvCleaner/src/tui/ui.rs:
 @@ -306,7 +308,7 @@
  fn draw_summary_stats(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
      let stats = app.get_summary_stats();
- 
+
 -    let mut text = vec![
 +    let text = vec![
          Line::from(vec![
@@ -7889,7 +7889,7 @@ Edited VenvCleaner/src/tui/app.rs:
 @@ -211,6 +211,11 @@
          self.visible_items = count;
      }
- 
+
 +    /// Get the number of visible items
 +    pub fn visible_items(&self) -> usize {
 +        self.visible_items
@@ -7989,7 +7989,7 @@ Edited VenvCleaner/src/core/mod.rs:
 ```diff
 @@ -18,10 +18,10 @@
  pub use file_utils::FileUtils;
- 
+
  /// Custom error types for VenvCleaner operations
 -#[derive(Error, Debug)]
 +#[derive(Error, Debug, Clone)]
@@ -7997,7 +7997,7 @@ Edited VenvCleaner/src/core/mod.rs:
      #[error("IO error: {0}")]
 -    Io(#[from] std::io::Error),
 +    Io(String),
- 
+
      #[error("Path error: {path} - {message}")]
      PathError { path: String, message: String },
 
@@ -8147,7 +8147,7 @@ Edited VenvCleaner/src/core/mod.rs:
 @@ -45,6 +45,12 @@
      MultipleErrors(Vec<VenvCleanerError>),
  }
- 
+
 +impl From<std::io::Error> for VenvCleanerError {
 +    fn from(error: std::io::Error) -> Self {
 +        VenvCleanerError::Io(error.to_string())
@@ -8156,7 +8156,7 @@ Edited VenvCleaner/src/core/mod.rs:
 +
  /// Result type alias for VenvCleaner operations
  pub type Result<T> = std::result::Result<T, VenvCleanerError>;
- 
+
 
 ```
 
@@ -8537,19 +8537,19 @@ Edited VenvCleaner/src/cli/mod.rs:
 -            std::env::current_dir().map_err(VenvCleanerError::Io)?
 +            std::env::current_dir()?
          };
- 
+
          // Validate that the directory exists
 @@ -260,10 +260,10 @@
- 
+
          // Ask user for confirmation
          print!("\n{} (y/N): ", "Delete this .venv directory?".bold());
 -        io::stdout().flush().map_err(VenvCleanerError::Io)?;
 +        io::stdout().flush()?;
- 
+
          let mut input = String::new();
 -        io::stdin().read_line(&mut input).map_err(VenvCleanerError::Io)?;
 +        io::stdin().read_line(&mut input)?;
- 
+
          let should_delete = input.trim().to_lowercase();
          if should_delete == "y" || should_delete == "yes" {
 
@@ -8598,7 +8598,7 @@ Edited VenvCleaner/src/main.rs:
 -                    std::env::current_dir().map_err(VenvCleanerError::Io)?
 +                    std::env::current_dir()?
                  };
- 
+
                  let recursive = matches.get_flag("recursive");
 
 ```
@@ -8652,11 +8652,11 @@ Edited VenvCleaner/src/tui/mod.rs:
          let backend = CrosstermBackend::new(stdout);
 -        let terminal = Terminal::new(backend).map_err(VenvCleanerError::Io)?;
 +        let terminal = Terminal::new(backend)?;
- 
+
          // Create VenvCleaner instance (always dry-run for TUI to prevent accidental deletions)
          let cleaner = VenvCleaner::new(
 @@ -397,13 +396,13 @@
- 
+
      /// Clean up terminal state before exiting
      fn cleanup(&mut self) -> Result<()> {
 -        terminal::disable_raw_mode().map_err(VenvCleanerError::Io)?;
@@ -8718,14 +8718,14 @@ Edited VenvCleaner/src/tui/app.rs:
 -                    .spawn()
 -                    .map_err(VenvCleanerError::Io)?;
 +                    .spawn()?;
- 
+
                  #[cfg(target_os = "linux")]
                  std::process::Command::new("xdg-open")
                      .arg(parent)
 -                    .spawn()
 -                    .map_err(VenvCleanerError::Io)?;
 +                    .spawn()?;
- 
+
                  #[cfg(target_os = "windows")]
                  std::process::Command::new("explorer")
                      .arg(parent)
@@ -9427,10 +9427,10 @@ Edited VenvCleaner/src/tui/mod.rs:
 @@ -17,7 +17,7 @@
  };
  use log::info;
- 
+
 -use crate::core::{VenvCleaner, VenvCleanerError, VenvInfo, Result};
 +use crate::core::{VenvCleaner, Result};
- 
+
  pub mod app;
  pub mod ui;
 
@@ -9475,11 +9475,11 @@ Edited VenvCleaner/src/tui/app.rs:
 @@ -7,7 +7,7 @@
  use std::path::PathBuf;
  use std::time::Instant;
- 
+
 -use crate::core::{VenvInfo, VenvCleanerError, Result};
 +use crate::core::{VenvInfo, Result};
  use super::{AppState, SortBy};
- 
+
  /// Main application state for the TUI mode
 
 ```
@@ -9523,11 +9523,11 @@ Edited VenvCleaner/src/tui/ui.rs:
 @@ -13,8 +13,7 @@
      },
  };
- 
+
 -use crate::core::VenvInfo;
 -use super::{TuiApp, AppState, SortBy};
 +use super::{TuiApp, SortBy};
- 
+
  /// Colors used throughout the TUI
  pub struct Colors;
 
@@ -10029,7 +10029,7 @@ Edited VenvCleaner/src/tui/mod.rs:
 ```diff
 @@ -117,9 +117,10 @@
          let terminal = Terminal::new(backend)?;
- 
+
          // Create VenvCleaner instance (always dry-run for TUI to prevent accidental deletions)
 +        // Default to recursive search for TUI mode
          let cleaner = VenvCleaner::new(
@@ -10051,7 +10051,7 @@ Edited VenvCleaner/src/tui/mod.rs:
                  }
 @@ -358,7 +360,20 @@
          }
- 
+
          self.app.handle_deletion_results(results);
 -        self.app.set_state(AppState::Browsing);
 +
@@ -10068,7 +10068,7 @@ Edited VenvCleaner/src/tui/mod.rs:
 +        // Trigger a refresh by going back to loading state
 +        self.app.set_state(AppState::Loading);
 +        self.start_loading_venvs()?;
- 
+
          Ok(())
      }
 
@@ -10113,7 +10113,7 @@ Edited VenvCleaner/src/main.rs:
 @@ -126,7 +126,12 @@
                      std::env::current_dir()?
                  };
- 
+
 -                let recursive = matches.get_flag("recursive");
 +                // TUI mode defaults to recursive unless explicitly disabled
 +                let recursive = if matches.contains_id("recursive") {
@@ -10122,7 +10122,7 @@ Edited VenvCleaner/src/main.rs:
 +                    true // Default to recursive for TUI mode
 +                };
                  let verbosity = matches.get_count("verbose");
- 
+
                  // Create and run TUI mode
 
 ```
@@ -10182,7 +10182,7 @@ Edited VenvCleaner/src/main.rs:
              Arg::new("force")
 @@ -127,8 +134,10 @@
                  };
- 
+
                  // TUI mode defaults to recursive unless explicitly disabled
 -                let recursive = if matches.contains_id("recursive") {
 -                    matches.get_flag("recursive")
@@ -10244,12 +10244,12 @@ Edited VenvCleaner/src/tui/app.rs:
 +            self.set_status(format!("Found {} .venv directories", self.venvs.len()));
 +        }
      }
- 
+
      /// Get the currently selected index
 @@ -390,15 +397,19 @@
              results: simplified_results,
          };
- 
+
 -        // Update status message
 +        // Update status message with more detail
          if failed == 0 {
@@ -10259,7 +10259,7 @@ Edited VenvCleaner/src/tui/app.rs:
 -            self.set_status(format!("Deleted {} directories, {} failed", successful, failed));
 +            self.set_status(format!("⚠️ Deleted {} directories, {} failed. Check permissions for failed items.", successful, failed));
          }
- 
+
 -        // Clear selected items
 +        // Clear selected items after deletion
          self.selected_venvs.clear();
@@ -10268,7 +10268,7 @@ Edited VenvCleaner/src/tui/app.rs:
 +        self.selected_index = 0;
 +        self.scroll_offset = 0;
      }
- 
+
      /// Open the folder containing the selected .venv
 
 ```
@@ -10316,7 +10316,7 @@ Edited VenvCleaner/src/tui/mod.rs:
 -        self.app.set_status("Searching for .venv directories...".to_string());
 +        let search_mode = if self.cleaner.is_recursive() { "recursively" } else { "in current directory" };
 +        self.app.set_status(format!("Searching for .venv directories {}...", search_mode));
- 
+
          // In a real implementation, this would spawn a background task
          // For now, we'll do it synchronously but show the loading state
 @@ -226,7 +227,12 @@
@@ -10373,7 +10373,7 @@ Edited VenvCleaner/src/tui/ui.rs:
 
 ```diff
 @@ -64,7 +64,7 @@
- 
+
  /// Draw the header section
  fn draw_header(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
 -    let title = format!("VenvCleaner - {}", app.current_directory().display());
@@ -10423,7 +10423,7 @@ Edited VenvCleaner/src/tui/ui.rs:
 @@ -366,8 +366,17 @@
                  .title("Status")
          );
- 
+
 -    // Shortcuts
 -    let shortcuts_text = "h:Help r:Refresh Space:Select x:Delete s:Sort o:Open q:Quit";
 +    // Shortcuts - show context-sensitive help
@@ -10470,7 +10470,7 @@ Edited VenvCleaner/src/tui/ui.rs:
 +            Span::styled("Press 'y' to confirm deletion or 'n'/Esc to cancel", Style::default().fg(Colors::MUTED)),
          ]),
      ];
- 
+
 
 ```
 
@@ -10530,7 +10530,7 @@ Edited VenvCleaner/src/tui/app.rs:
 @@ -183,9 +186,15 @@
          &self.current_directory
      }
- 
+
 -    /// Set the current directory
 -    pub fn set_current_directory(&mut self, path: PathBuf) {
 +    /// Set the current directory and recursive status
@@ -10543,7 +10543,7 @@ Edited VenvCleaner/src/tui/app.rs:
 +    pub fn is_recursive(&self) -> bool {
 +        self.is_recursive
      }
- 
+
      /// Get the loading animation state
 
 ```
@@ -10587,7 +10587,7 @@ Edited VenvCleaner/src/tui/mod.rs:
 @@ -116,18 +116,18 @@
          let backend = CrosstermBackend::new(stdout);
          let terminal = Terminal::new(backend)?;
- 
+
 -        // Create VenvCleaner instance (always dry-run for TUI to prevent accidental deletions)
 -        // Default to recursive search for TUI mode
 +        // Create VenvCleaner instance
@@ -10600,12 +10600,12 @@ Edited VenvCleaner/src/tui/mod.rs:
              false, // dry_run = false (we handle this in TUI)
              verbosity,
          );
- 
+
          // Create application state
 -        let app = TuiApp::new();
 +        let mut app = TuiApp::new();
 +        app.set_current_directory(base_directory, recursive);
- 
+
          // Create event handler
          let event_handler = EventHandler::new(Duration::from_millis(250))?;
 
@@ -10648,7 +10648,7 @@ Edited VenvCleaner/src/tui/ui.rs:
 
 ```diff
 @@ -64,7 +64,8 @@
- 
+
  /// Draw the header section
  fn draw_header(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
 -    let title = format!("VenvCleaner - {} (Recursive)", app.current_directory().display());
@@ -10757,10 +10757,10 @@ Edited VenvCleaner/src/tui/ui.rs:
 @@ -13,7 +13,7 @@
      },
  };
- 
+
 -use super::{TuiApp, SortBy};
 +use super::{TuiApp, SortBy, AppState};
- 
+
  /// Colors used throughout the TUI
  pub struct Colors;
 
@@ -10805,17 +10805,17 @@ Edited VenvCleaner/src/tui/mod.rs:
 @@ -365,11 +365,13 @@
              results.push((venv.clone(), result));
          }
- 
+
 +        // Calculate stats before moving results
 +        let deleted_count = results.iter().filter(|(_, r)| r.is_ok()).count();
 +        let failed_count = results.len() - deleted_count;
 +
          self.app.handle_deletion_results(results);
- 
+
          // Set a brief completion message
 -        let deleted_count = results.iter().filter(|(_, r)| r.is_ok()).count();
 -        let failed_count = results.len() - deleted_count;
- 
+
          if failed_count == 0 {
              self.app.set_status(format!("Successfully deleted {} directories. Refreshing list...", deleted_count));
 
@@ -11142,3 +11142,687 @@ Great! Now let's test the TUI mode:
 **Tool Results: toolu_01CphiqEzuTy3KfVuaSZWPp7 (Error)**
 
 Tool canceled by user
+## User
+
+In tui mode when doing the initial scan make the user aware that this is happening as the screen is currently blank.
+
+## Agent
+
+You're absolutely right! The TUI mode should show immediate feedback when starting the initial scan. Let me fix this by showing a loading screen right from the start and making the scanning process more visible to the user.
+
+**Use Tool: edit_file (toolu_01VcBXhCxHJ4wXHZbhc6r4AD)**
+```json
+{
+  "display_description": "Show immediate loading feedback in TUI mode during initial scan",
+  "mode": "edit",
+  "path": "VenvCleaner/src/tui/mod.rs"
+}
+```
+
+**Tool Results: toolu_01VcBXhCxHJ4wXHZbhc6r4AD**
+
+Edited VenvCleaner/src/tui/mod.rs:
+
+```diff
+@@ -144,6 +144,16 @@
+     pub fn run(&mut self) -> Result<()> {
+         info!("Starting TUI mode");
+
++        // Set initial loading state before drawing anything
++        self.app.set_state(AppState::Loading);
++        self.app.set_status("Initializing VenvCleaner TUI...".to_string());
++
++        // Draw initial loading screen immediately
++        self.terminal.draw(|f| {
++            let size = f.size();
++            ui::draw_loading_screen(f, size, &self.app);
++        })?;
++
+         // Start loading .venv directories in the background
+         self.start_loading_venvs()?;
+
+
+```
+
+
+Debug Output:
+
+```json
+{
+  "original_path": "src/tui/mod.rs",
+  "new_text": "//! TUI module for VenvCleaner\n//!\n//! This module handles the Terminal User Interface for interactive .venv directory management.\n//! It provides a full-screen terminal interface using ratatui with keyboard navigation,\n//! sorting options, and interactive deletion capabilities.\n\nuse std::io;\nuse std::time::Duration;\nuse crossterm::{\n    event::{DisableMouseCapture, EnableMouseCapture, KeyEvent, KeyCode, KeyModifiers},\n    execute,\n    terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},\n};\nuse ratatui::{\n    backend::CrosstermBackend,\n    Terminal,\n};\nuse log::info;\n\nuse crate::core::{VenvCleaner, Result};\n\npub mod app;\npub mod ui;\npub mod events;\n\npub use app::TuiApp;\npub use events::{AppEvent, EventHandler};\n\n/// Main TUI mode handler for VenvCleaner\npub struct TuiMode {\n    /// The core VenvCleaner instance\n    cleaner: VenvCleaner,\n    /// Terminal interface\n    terminal: Terminal<CrosstermBackend<io::Stdout>>,\n    /// Application state\n    app: TuiApp,\n    /// Event handler for user input\n    event_handler: EventHandler,\n}\n\n/// Application states for the TUI\n#[derive(Debug, Clone, PartialEq)]\npub enum AppState {\n    /// Loading .venv directories\n    Loading,\n    /// Browsing .venv directories\n    Browsing,\n    /// Confirming deletion of selected directories\n    ConfirmingDeletion,\n    /// Deleting directories\n    Deleting,\n    /// Showing error message\n    Error,\n    /// Showing help screen\n    Help,\n    /// Application should quit\n    Quit,\n}\n\n/// Sorting options for .venv directories\n#[derive(Debug, Clone, Copy, PartialEq)]\npub enum SortBy {\n    /// Sort by path (alphabetical)\n    Path,\n    /// Sort by size (largest first)\n    Size,\n    /// Sort by creation date (newest first)\n    Created,\n    /// Sort by last modified date (most recent first)\n    LastModified,\n}\n\nimpl SortBy {\n    /// Get the next sort option in sequence\n    pub fn next(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::Size,\n            SortBy::Size => SortBy::Created,\n            SortBy::Created => SortBy::LastModified,\n            SortBy::LastModified => SortBy::Path,\n        }\n    }\n\n    /// Get the previous sort option in sequence\n    pub fn previous(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::LastModified,\n            SortBy::Size => SortBy::Path,\n            SortBy::Created => SortBy::Size,\n            SortBy::LastModified => SortBy::Created,\n        }\n    }\n\n    /// Get the display name for this sort option\n    pub fn display_name(self) -> &'static str {\n        match self {\n            SortBy::Path => \"Path\",\n            SortBy::Size => \"Size\",\n            SortBy::Created => \"Created\",\n            SortBy::LastModified => \"Last Used\",\n        }\n    }\n}\n\nimpl TuiMode {\n    /// Create a new TuiMode instance\n    pub fn new(\n        base_directory: std::path::PathBuf,\n        recursive: bool,\n        verbosity: u8,\n    ) -> Result<Self> {\n        // Setup terminal\n        terminal::enable_raw_mode()?;\n        let mut stdout = io::stdout();\n        execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;\n        let backend = CrosstermBackend::new(stdout);\n        let terminal = Terminal::new(backend)?;\n\n        // Create VenvCleaner instance\n        let cleaner = VenvCleaner::new(\n            base_directory.clone(),\n            recursive,\n            false, // force_mode = false for TUI\n            false, // dry_run = false (we handle this in TUI)\n            verbosity,\n        );\n\n        // Create application state\n        let mut app = TuiApp::new();\n        app.set_current_directory(base_directory, recursive);\n\n        // Create event handler\n        let event_handler = EventHandler::new(Duration::from_millis(250))?;\n\n        Ok(Self {\n            cleaner,\n            terminal,\n            app,\n            event_handler,\n        })\n    }\n\n    /// Run the TUI application\n    pub fn run(&mut self) -> Result<()> {\n        info!(\"Starting TUI mode\");\n\n        // Set initial loading state before drawing anything\n        self.app.set_state(AppState::Loading);\n        self.app.set_status(\"Initializing VenvCleaner TUI...\".to_string());\n\n        // Draw initial loading screen immediately\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // Start loading .venv directories in the background\n        self.start_loading_venvs()?;\n\n        // Main event loop\n        loop {\n            // Draw the UI\n            let app_ref = &self.app;\n            self.terminal.draw(|f| {\n                let size = f.size();\n                match app_ref.state() {\n                    AppState::Loading => {\n                        ui::draw_loading_screen(f, size, app_ref);\n                    }\n                    AppState::Browsing => {\n                        ui::draw_main_screen(f, size, app_ref);\n                    }\n                    AppState::ConfirmingDeletion => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_confirmation_dialog(f, size, app_ref);\n                    }\n                    AppState::Deleting => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_deletion_progress(f, size, app_ref);\n                    }\n                    AppState::Error => {\n                        ui::draw_error_screen(f, size, app_ref);\n                    }\n                    AppState::Help => {\n                        ui::draw_help_screen(f, size);\n                    }\n                    AppState::Quit => {\n                        // Should not reach here\n                    }\n                }\n            })?;\n\n            // Handle events\n            if let Ok(event) = self.event_handler.next() {\n                match event {\n                    AppEvent::Input(key_event) => {\n                        if self.handle_key_event(key_event)? {\n                            break; // Exit requested\n                        }\n                    }\n                    AppEvent::Tick => {\n                        self.handle_tick()?;\n                    }\n                    AppEvent::VenvsLoaded(venvs) => {\n                        self.app.set_venvs(venvs);\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    AppEvent::LoadError(error) => {\n                        self.app.set_error(error);\n                        self.app.set_state(AppState::Error);\n                    }\n                    AppEvent::DeletionComplete(results) => {\n                        self.app.handle_deletion_results(results);\n                        // Refresh the list by reloading after a short delay to show completion\n                        self.app.set_state(AppState::Loading);\n                        self.start_loading_venvs()?;\n                    }\n                }\n            }\n        }\n\n        self.cleanup()?;\n        Ok(())\n    }\n\n    /// Start loading .venv directories in the background\n    fn start_loading_venvs(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Loading);\n        let search_mode = if self.cleaner.is_recursive() { \"recursively\" } else { \"in current directory\" };\n        self.app.set_status(format!(\"Searching for .venv directories {}...\", search_mode));\n\n        // In a real implementation, this would spawn a background task\n        // For now, we'll do it synchronously but show the loading state\n        let venvs = self.cleaner.find_venv_directories();\n\n        match venvs {\n            Ok(venvs) => {\n                self.app.set_venvs(venvs);\n                self.app.set_state(AppState::Browsing);\n                let count = self.app.venvs().len();\n                if count == 0 {\n                    self.app.set_status(\"No .venv directories found. Press 'r' to refresh or 'q' to quit.\".to_string());\n                } else {\n                    self.app.set_status(format!(\"Found {} .venv directories. Use arrow keys to navigate, Space to select.\", count));\n                }\n            }\n            Err(e) => {\n                self.app.set_error(e.to_string());\n                self.app.set_state(AppState::Error);\n            }\n        }\n\n        Ok(())\n    }\n\n    /// Handle keyboard input events\n    fn handle_key_event(&mut self, key: KeyEvent) -> Result<bool> {\n        match self.app.state() {\n            AppState::Loading => {\n                // Only allow quit during loading\n                if matches!(key.code, KeyCode::Char('q') | KeyCode::Esc) {\n                    return Ok(true);\n                }\n            }\n            AppState::Browsing => {\n                match key.code {\n                    KeyCode::Char('q') | KeyCode::Esc => return Ok(true),\n                    KeyCode::Char('h') | KeyCode::F(1) => {\n                        self.app.set_state(AppState::Help);\n                    }\n                    KeyCode::Char('r') => {\n                        self.start_loading_venvs()?;\n                    }\n                    KeyCode::Up => {\n                        self.app.select_previous();\n                    }\n                    KeyCode::Down => {\n                        self.app.select_next();\n                    }\n                    KeyCode::Home => {\n                        self.app.select_first();\n                    }\n                    KeyCode::End => {\n                        self.app.select_last();\n                    }\n                    KeyCode::PageUp => {\n                        self.app.page_up();\n                    }\n                    KeyCode::PageDown => {\n                        self.app.page_down();\n                    }\n                    KeyCode::Enter | KeyCode::Char(' ') => {\n                        self.app.toggle_selected();\n                    }\n                    KeyCode::Char('a') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.select_all();\n                        }\n                    }\n                    KeyCode::Char('d') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.deselect_all();\n                        }\n                    }\n                    KeyCode::Delete | KeyCode::Char('x') => {\n                        if self.app.has_selected_items() {\n                            self.app.set_state(AppState::ConfirmingDeletion);\n                        }\n                    }\n                    KeyCode::Char('s') => {\n                        self.app.cycle_sort();\n                        self.app.set_status(format!(\"Sorted by {}\", self.app.sort_by().display_name()));\n                    }\n                    KeyCode::Char('o') => {\n                        self.app.open_folder()?;\n                    }\n                    _ => {}\n                }\n            }\n            AppState::ConfirmingDeletion => {\n                match key.code {\n                    KeyCode::Char('y') | KeyCode::Enter => {\n                        self.start_deletion()?;\n                    }\n                    KeyCode::Char('n') | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    _ => {}\n                }\n            }\n            AppState::Deleting => {\n                // Only allow force quit during deletion\n                if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {\n                    return Ok(true);\n                }\n            }\n            AppState::Error => {\n                match key.code {\n                    KeyCode::Enter | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    KeyCode::Char('q') => return Ok(true),\n                    _ => {}\n                }\n            }\n            AppState::Help => {\n                // Any key exits help\n                self.app.set_state(AppState::Browsing);\n            }\n            AppState::Quit => {\n                return Ok(true);\n            }\n        }\n\n        Ok(false)\n    }\n\n    /// Handle tick events (periodic updates)\n    fn handle_tick(&mut self) -> Result<()> {\n        // Update any animations or periodic state changes\n        self.app.tick();\n        Ok(())\n    }\n\n    /// Start the deletion process for selected .venv directories\n    fn start_deletion(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Deleting);\n        self.app.set_status(\"Deleting selected directories...\".to_string());\n\n        let selected_venvs = self.app.get_selected_venvs();\n        let mut results = Vec::new();\n\n        for venv in &selected_venvs {\n            let result = self.cleaner.delete_venv_directory(venv);\n            results.push((venv.clone(), result));\n        }\n\n        // Calculate stats before moving results\n        let deleted_count = results.iter().filter(|(_, r)| r.is_ok()).count();\n        let failed_count = results.len() - deleted_count;\n\n        self.app.handle_deletion_results(results);\n\n        // Set a brief completion message\n\n        if failed_count == 0 {\n            self.app.set_status(format!(\"Successfully deleted {} directories. Refreshing list...\", deleted_count));\n        } else {\n            self.app.set_status(format!(\"Deleted {} directories, {} failed. Refreshing list...\", deleted_count, failed_count));\n        }\n\n        // Trigger a refresh by going back to loading state\n        self.app.set_state(AppState::Loading);\n        self.start_loading_venvs()?;\n\n        Ok(())\n    }\n\n    /// Draw the user interface\n    fn draw_ui(&self, f: &mut ratatui::Frame) {\n        let size = f.size();\n\n        match self.app.state() {\n            AppState::Loading => {\n                ui::draw_loading_screen(f, size, &self.app);\n            }\n            AppState::Browsing => {\n                ui::draw_main_screen(f, size, &self.app);\n            }\n            AppState::ConfirmingDeletion => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_confirmation_dialog(f, size, &self.app);\n            }\n            AppState::Deleting => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_deletion_progress(f, size, &self.app);\n            }\n            AppState::Error => {\n                ui::draw_error_screen(f, size, &self.app);\n            }\n            AppState::Help => {\n                ui::draw_help_screen(f, size);\n            }\n            AppState::Quit => {\n                // Should not reach here\n            }\n        }\n    }\n\n    /// Clean up terminal state before exiting\n    fn cleanup(&mut self) -> Result<()> {\n        terminal::disable_raw_mode()?;\n        execute!(\n            self.terminal.backend_mut(),\n            LeaveAlternateScreen,\n            DisableMouseCapture\n        )?;\n        self.terminal.show_cursor()?;\n        Ok(())\n    }\n}\n\nimpl Drop for TuiMode {\n    fn drop(&mut self) {\n        // Ensure cleanup happens even if there's a panic\n        let _ = self.cleanup();\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n    use tempfile::TempDir;\n\n    #[test]\n    fn test_sort_by_cycle() {\n        assert_eq!(SortBy::Path.next(), SortBy::Size);\n        assert_eq!(SortBy::Size.next(), SortBy::Created);\n        assert_eq!(SortBy::Created.next(), SortBy::LastModified);\n        assert_eq!(SortBy::LastModified.next(), SortBy::Path);\n    }\n\n    #[test]\n    fn test_sort_by_previous() {\n        assert_eq!(SortBy::Path.previous(), SortBy::LastModified);\n        assert_eq!(SortBy::Size.previous(), SortBy::Path);\n        assert_eq!(SortBy::Created.previous(), SortBy::Size);\n        assert_eq!(SortBy::LastModified.previous(), SortBy::Created);\n    }\n\n    #[test]\n    fn test_sort_by_display_names() {\n        assert_eq!(SortBy::Path.display_name(), \"Path\");\n        assert_eq!(SortBy::Size.display_name(), \"Size\");\n        assert_eq!(SortBy::Created.display_name(), \"Created\");\n        assert_eq!(SortBy::LastModified.display_name(), \"Last Used\");\n    }\n}\n",
+  "old_text": "//! TUI module for VenvCleaner\n//!\n//! This module handles the Terminal User Interface for interactive .venv directory management.\n//! It provides a full-screen terminal interface using ratatui with keyboard navigation,\n//! sorting options, and interactive deletion capabilities.\n\nuse std::io;\nuse std::time::Duration;\nuse crossterm::{\n    event::{DisableMouseCapture, EnableMouseCapture, KeyEvent, KeyCode, KeyModifiers},\n    execute,\n    terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},\n};\nuse ratatui::{\n    backend::CrosstermBackend,\n    Terminal,\n};\nuse log::info;\n\nuse crate::core::{VenvCleaner, Result};\n\npub mod app;\npub mod ui;\npub mod events;\n\npub use app::TuiApp;\npub use events::{AppEvent, EventHandler};\n\n/// Main TUI mode handler for VenvCleaner\npub struct TuiMode {\n    /// The core VenvCleaner instance\n    cleaner: VenvCleaner,\n    /// Terminal interface\n    terminal: Terminal<CrosstermBackend<io::Stdout>>,\n    /// Application state\n    app: TuiApp,\n    /// Event handler for user input\n    event_handler: EventHandler,\n}\n\n/// Application states for the TUI\n#[derive(Debug, Clone, PartialEq)]\npub enum AppState {\n    /// Loading .venv directories\n    Loading,\n    /// Browsing .venv directories\n    Browsing,\n    /// Confirming deletion of selected directories\n    ConfirmingDeletion,\n    /// Deleting directories\n    Deleting,\n    /// Showing error message\n    Error,\n    /// Showing help screen\n    Help,\n    /// Application should quit\n    Quit,\n}\n\n/// Sorting options for .venv directories\n#[derive(Debug, Clone, Copy, PartialEq)]\npub enum SortBy {\n    /// Sort by path (alphabetical)\n    Path,\n    /// Sort by size (largest first)\n    Size,\n    /// Sort by creation date (newest first)\n    Created,\n    /// Sort by last modified date (most recent first)\n    LastModified,\n}\n\nimpl SortBy {\n    /// Get the next sort option in sequence\n    pub fn next(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::Size,\n            SortBy::Size => SortBy::Created,\n            SortBy::Created => SortBy::LastModified,\n            SortBy::LastModified => SortBy::Path,\n        }\n    }\n\n    /// Get the previous sort option in sequence\n    pub fn previous(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::LastModified,\n            SortBy::Size => SortBy::Path,\n            SortBy::Created => SortBy::Size,\n            SortBy::LastModified => SortBy::Created,\n        }\n    }\n\n    /// Get the display name for this sort option\n    pub fn display_name(self) -> &'static str {\n        match self {\n            SortBy::Path => \"Path\",\n            SortBy::Size => \"Size\",\n            SortBy::Created => \"Created\",\n            SortBy::LastModified => \"Last Used\",\n        }\n    }\n}\n\nimpl TuiMode {\n    /// Create a new TuiMode instance\n    pub fn new(\n        base_directory: std::path::PathBuf,\n        recursive: bool,\n        verbosity: u8,\n    ) -> Result<Self> {\n        // Setup terminal\n        terminal::enable_raw_mode()?;\n        let mut stdout = io::stdout();\n        execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;\n        let backend = CrosstermBackend::new(stdout);\n        let terminal = Terminal::new(backend)?;\n\n        // Create VenvCleaner instance\n        let cleaner = VenvCleaner::new(\n            base_directory.clone(),\n            recursive,\n            false, // force_mode = false for TUI\n            false, // dry_run = false (we handle this in TUI)\n            verbosity,\n        );\n\n        // Create application state\n        let mut app = TuiApp::new();\n        app.set_current_directory(base_directory, recursive);\n\n        // Create event handler\n        let event_handler = EventHandler::new(Duration::from_millis(250))?;\n\n        Ok(Self {\n            cleaner,\n            terminal,\n            app,\n            event_handler,\n        })\n    }\n\n    /// Run the TUI application\n    pub fn run(&mut self) -> Result<()> {\n        info!(\"Starting TUI mode\");\n\n        // Start loading .venv directories in the background\n        self.start_loading_venvs()?;\n\n        // Main event loop\n        loop {\n            // Draw the UI\n            let app_ref = &self.app;\n            self.terminal.draw(|f| {\n                let size = f.size();\n                match app_ref.state() {\n                    AppState::Loading => {\n                        ui::draw_loading_screen(f, size, app_ref);\n                    }\n                    AppState::Browsing => {\n                        ui::draw_main_screen(f, size, app_ref);\n                    }\n                    AppState::ConfirmingDeletion => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_confirmation_dialog(f, size, app_ref);\n                    }\n                    AppState::Deleting => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_deletion_progress(f, size, app_ref);\n                    }\n                    AppState::Error => {\n                        ui::draw_error_screen(f, size, app_ref);\n                    }\n                    AppState::Help => {\n                        ui::draw_help_screen(f, size);\n                    }\n                    AppState::Quit => {\n                        // Should not reach here\n                    }\n                }\n            })?;\n\n            // Handle events\n            if let Ok(event) = self.event_handler.next() {\n                match event {\n                    AppEvent::Input(key_event) => {\n                        if self.handle_key_event(key_event)? {\n                            break; // Exit requested\n                        }\n                    }\n                    AppEvent::Tick => {\n                        self.handle_tick()?;\n                    }\n                    AppEvent::VenvsLoaded(venvs) => {\n                        self.app.set_venvs(venvs);\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    AppEvent::LoadError(error) => {\n                        self.app.set_error(error);\n                        self.app.set_state(AppState::Error);\n                    }\n                    AppEvent::DeletionComplete(results) => {\n                        self.app.handle_deletion_results(results);\n                        // Refresh the list by reloading after a short delay to show completion\n                        self.app.set_state(AppState::Loading);\n                        self.start_loading_venvs()?;\n                    }\n                }\n            }\n        }\n\n        self.cleanup()?;\n        Ok(())\n    }\n\n    /// Start loading .venv directories in the background\n    fn start_loading_venvs(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Loading);\n        let search_mode = if self.cleaner.is_recursive() { \"recursively\" } else { \"in current directory\" };\n        self.app.set_status(format!(\"Searching for .venv directories {}...\", search_mode));\n\n        // In a real implementation, this would spawn a background task\n        // For now, we'll do it synchronously but show the loading state\n        let venvs = self.cleaner.find_venv_directories();\n\n        match venvs {\n            Ok(venvs) => {\n                self.app.set_venvs(venvs);\n                self.app.set_state(AppState::Browsing);\n                let count = self.app.venvs().len();\n                if count == 0 {\n                    self.app.set_status(\"No .venv directories found. Press 'r' to refresh or 'q' to quit.\".to_string());\n                } else {\n                    self.app.set_status(format!(\"Found {} .venv directories. Use arrow keys to navigate, Space to select.\", count));\n                }\n            }\n            Err(e) => {\n                self.app.set_error(e.to_string());\n                self.app.set_state(AppState::Error);\n            }\n        }\n\n        Ok(())\n    }\n\n    /// Handle keyboard input events\n    fn handle_key_event(&mut self, key: KeyEvent) -> Result<bool> {\n        match self.app.state() {\n            AppState::Loading => {\n                // Only allow quit during loading\n                if matches!(key.code, KeyCode::Char('q') | KeyCode::Esc) {\n                    return Ok(true);\n                }\n            }\n            AppState::Browsing => {\n                match key.code {\n                    KeyCode::Char('q') | KeyCode::Esc => return Ok(true),\n                    KeyCode::Char('h') | KeyCode::F(1) => {\n                        self.app.set_state(AppState::Help);\n                    }\n                    KeyCode::Char('r') => {\n                        self.start_loading_venvs()?;\n                    }\n                    KeyCode::Up => {\n                        self.app.select_previous();\n                    }\n                    KeyCode::Down => {\n                        self.app.select_next();\n                    }\n                    KeyCode::Home => {\n                        self.app.select_first();\n                    }\n                    KeyCode::End => {\n                        self.app.select_last();\n                    }\n                    KeyCode::PageUp => {\n                        self.app.page_up();\n                    }\n                    KeyCode::PageDown => {\n                        self.app.page_down();\n                    }\n                    KeyCode::Enter | KeyCode::Char(' ') => {\n                        self.app.toggle_selected();\n                    }\n                    KeyCode::Char('a') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.select_all();\n                        }\n                    }\n                    KeyCode::Char('d') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.deselect_all();\n                        }\n                    }\n                    KeyCode::Delete | KeyCode::Char('x') => {\n                        if self.app.has_selected_items() {\n                            self.app.set_state(AppState::ConfirmingDeletion);\n                        }\n                    }\n                    KeyCode::Char('s') => {\n                        self.app.cycle_sort();\n                        self.app.set_status(format!(\"Sorted by {}\", self.app.sort_by().display_name()));\n                    }\n                    KeyCode::Char('o') => {\n                        self.app.open_folder()?;\n                    }\n                    _ => {}\n                }\n            }\n            AppState::ConfirmingDeletion => {\n                match key.code {\n                    KeyCode::Char('y') | KeyCode::Enter => {\n                        self.start_deletion()?;\n                    }\n                    KeyCode::Char('n') | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    _ => {}\n                }\n            }\n            AppState::Deleting => {\n                // Only allow force quit during deletion\n                if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {\n                    return Ok(true);\n                }\n            }\n            AppState::Error => {\n                match key.code {\n                    KeyCode::Enter | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    KeyCode::Char('q') => return Ok(true),\n                    _ => {}\n                }\n            }\n            AppState::Help => {\n                // Any key exits help\n                self.app.set_state(AppState::Browsing);\n            }\n            AppState::Quit => {\n                return Ok(true);\n            }\n        }\n\n        Ok(false)\n    }\n\n    /// Handle tick events (periodic updates)\n    fn handle_tick(&mut self) -> Result<()> {\n        // Update any animations or periodic state changes\n        self.app.tick();\n        Ok(())\n    }\n\n    /// Start the deletion process for selected .venv directories\n    fn start_deletion(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Deleting);\n        self.app.set_status(\"Deleting selected directories...\".to_string());\n\n        let selected_venvs = self.app.get_selected_venvs();\n        let mut results = Vec::new();\n\n        for venv in &selected_venvs {\n            let result = self.cleaner.delete_venv_directory(venv);\n            results.push((venv.clone(), result));\n        }\n\n        // Calculate stats before moving results\n        let deleted_count = results.iter().filter(|(_, r)| r.is_ok()).count();\n        let failed_count = results.len() - deleted_count;\n\n        self.app.handle_deletion_results(results);\n\n        // Set a brief completion message\n\n        if failed_count == 0 {\n            self.app.set_status(format!(\"Successfully deleted {} directories. Refreshing list...\", deleted_count));\n        } else {\n            self.app.set_status(format!(\"Deleted {} directories, {} failed. Refreshing list...\", deleted_count, failed_count));\n        }\n\n        // Trigger a refresh by going back to loading state\n        self.app.set_state(AppState::Loading);\n        self.start_loading_venvs()?;\n\n        Ok(())\n    }\n\n    /// Draw the user interface\n    fn draw_ui(&self, f: &mut ratatui::Frame) {\n        let size = f.size();\n\n        match self.app.state() {\n            AppState::Loading => {\n                ui::draw_loading_screen(f, size, &self.app);\n            }\n            AppState::Browsing => {\n                ui::draw_main_screen(f, size, &self.app);\n            }\n            AppState::ConfirmingDeletion => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_confirmation_dialog(f, size, &self.app);\n            }\n            AppState::Deleting => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_deletion_progress(f, size, &self.app);\n            }\n            AppState::Error => {\n                ui::draw_error_screen(f, size, &self.app);\n            }\n            AppState::Help => {\n                ui::draw_help_screen(f, size);\n            }\n            AppState::Quit => {\n                // Should not reach here\n            }\n        }\n    }\n\n    /// Clean up terminal state before exiting\n    fn cleanup(&mut self) -> Result<()> {\n        terminal::disable_raw_mode()?;\n        execute!(\n            self.terminal.backend_mut(),\n            LeaveAlternateScreen,\n            DisableMouseCapture\n        )?;\n        self.terminal.show_cursor()?;\n        Ok(())\n    }\n}\n\nimpl Drop for TuiMode {\n    fn drop(&mut self) {\n        // Ensure cleanup happens even if there's a panic\n        let _ = self.cleanup();\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n    use tempfile::TempDir;\n\n    #[test]\n    fn test_sort_by_cycle() {\n        assert_eq!(SortBy::Path.next(), SortBy::Size);\n        assert_eq!(SortBy::Size.next(), SortBy::Created);\n        assert_eq!(SortBy::Created.next(), SortBy::LastModified);\n        assert_eq!(SortBy::LastModified.next(), SortBy::Path);\n    }\n\n    #[test]\n    fn test_sort_by_previous() {\n        assert_eq!(SortBy::Path.previous(), SortBy::LastModified);\n        assert_eq!(SortBy::Size.previous(), SortBy::Path);\n        assert_eq!(SortBy::Created.previous(), SortBy::Size);\n        assert_eq!(SortBy::LastModified.previous(), SortBy::Created);\n    }\n\n    #[test]\n    fn test_sort_by_display_names() {\n        assert_eq!(SortBy::Path.display_name(), \"Path\");\n        assert_eq!(SortBy::Size.display_name(), \"Size\");\n        assert_eq!(SortBy::Created.display_name(), \"Created\");\n        assert_eq!(SortBy::LastModified.display_name(), \"Last Used\");\n    }\n}\n",
+  "raw_output": {
+    "raw_edits": "<edits>\n\n<old_text>\n    /// Run the TUI application\n    pub fn run(&mut self) -> Result<()> {\n        info!(\"Starting TUI mode\");\n\n        // Start loading .venv directories in the background\n        self.start_loading_venvs()?;\n\n        // Main event loop\n        loop {</old_text>\n<new_text>\n    /// Run the TUI application\n    pub fn run(&mut self) -> Result<()> {\n        info!(\"Starting TUI mode\");\n\n        // Set initial loading state before drawing anything\n        self.app.set_state(AppState::Loading);\n        self.app.set_status(\"Initializing VenvCleaner TUI...\".to_string());\n\n        // Draw initial loading screen immediately\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // Start loading .venv directories in the background\n        self.start_loading_venvs()?;\n\n        // Main event loop\n        loop {</old_text>\n</edits>",
+    "parser_metrics": {
+      "tags": 2,
+      "mismatched_tags": 1
+    }
+  }
+}
+```
+
+## Agent
+
+I see the README.md file has been updated. Let me also improve the TUI loading experience further by adding more detailed progress feedback and making the scanning process more transparent:
+
+**Use Tool: edit_file (toolu_01VLnganF9X5fyiVXA2Eb4tk)**
+```json
+{
+  "display_description": "Enhance TUI loading feedback with more detailed progress information",
+  "mode": "edit",
+  "path": "VenvCleaner/src/tui/ui.rs"
+}
+```
+
+**Tool Results: toolu_01VLnganF9X5fyiVXA2Eb4tk**
+
+Edited VenvCleaner/src/tui/ui.rs:
+
+```diff
+@@ -395,24 +395,66 @@
+     let chunks = Layout::default()
+         .direction(Direction::Vertical)
+         .constraints([
+-            Constraint::Percentage(40),
+-            Constraint::Length(3),
+-            Constraint::Percentage(60),
++            Constraint::Percentage(20),
++            Constraint::Length(8),
++            Constraint::Percentage(20),
++            Constraint::Length(5),
++            Constraint::Percentage(50),
+         ])
+         .split(area);
+
++    // Title
++    let title_text = vec![
++        Line::from(vec![
++            Span::styled("VenvCleaner TUI", Style::default().fg(Colors::PRIMARY).add_modifier(Modifier::BOLD)),
++        ]),
++        Line::from(""),
++        Line::from(vec![
++            Span::styled("🔍 Scanning for .venv directories...", Style::default().fg(Colors::SECONDARY)),
++        ]),
++    ];
++
++    let title_paragraph = Paragraph::new(title_text)
++        .alignment(Alignment::Center)
++        .block(
++            Block::default()
++                .borders(Borders::ALL)
++                .border_style(Style::default().fg(Colors::PRIMARY))
++                .title("Initializing")
++        );
++
++    // Loading animation
+     let loading_text = format!("Loading{}", ".".repeat(app.loading_dots()));
+     let loading_paragraph = Paragraph::new(loading_text)
+-        .style(Style::default().fg(Colors::PRIMARY))
++        .style(Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD))
+         .alignment(Alignment::Center);
+
+-    let status_text = app.status();
+-    let status_paragraph = Paragraph::new(status_text)
+-        .style(Style::default().fg(Colors::MUTED))
+-        .alignment(Alignment::Center);
++    // Status and directory info
++    let status_lines = vec![
++        Line::from(vec![
++            Span::styled("Directory: ", Style::default().fg(Colors::SECONDARY)),
++            Span::raw(app.current_directory().display().to_string()),
++        ]),
++        Line::from(vec![
++            Span::styled("Mode: ", Style::default().fg(Colors::SECONDARY)),
++            Span::raw(if app.is_recursive() { "Recursive search" } else { "Current directory only" }),
++        ]),
++        Line::from(""),
++        Line::from(app.status()),
++    ];
+
+-    f.render_widget(loading_paragraph, chunks[1]);
+-    f.render_widget(status_paragraph, chunks[2]);
++    let status_paragraph = Paragraph::new(status_lines)
++        .alignment(Alignment::Center)
++        .block(
++            Block::default()
++                .borders(Borders::ALL)
++                .border_style(Style::default().fg(Colors::MUTED))
++                .title("Status")
++        );
++
++    f.render_widget(title_paragraph, chunks[1]);
++    f.render_widget(loading_paragraph, chunks[2]);
++    f.render_widget(status_paragraph, chunks[3]);
+ }
+
+ /// Draw the confirmation dialog
+
+```
+
+
+Debug Output:
+
+```json
+{
+  "original_path": "src/tui/ui.rs",
+  "new_text": "//! UI rendering for the TUI mode\n//!\n//! This module handles all the UI rendering for the TUI interface, including\n//! the main screen, dialogs, progress bars, and help screens.\n\nuse ratatui::{\n    layout::{Alignment, Constraint, Direction, Layout, Rect},\n    style::{Color, Modifier, Style},\n    text::{Line, Span},\n    widgets::{\n        Block, Borders, Clear, Gauge, List, ListItem, ListState, Paragraph,\n        Wrap, BorderType\n    },\n};\n\nuse super::{TuiApp, SortBy, AppState};\n\n/// Colors used throughout the TUI\npub struct Colors;\n\nimpl Colors {\n    pub const PRIMARY: Color = Color::Cyan;\n    pub const SECONDARY: Color = Color::Yellow;\n    pub const SUCCESS: Color = Color::Green;\n    pub const WARNING: Color = Color::Yellow;\n    pub const ERROR: Color = Color::Red;\n    pub const MUTED: Color = Color::Gray;\n    pub const SELECTED: Color = Color::Blue;\n    pub const HIGHLIGHT: Color = Color::Magenta;\n}\n\n/// Draw the main browsing screen\npub fn draw_main_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Length(3),  // Header\n            Constraint::Min(0),     // Main content\n            Constraint::Length(3),  // Footer\n        ])\n        .split(area);\n\n    // Header\n    draw_header(f, chunks[0], app);\n\n    // Main content area\n    let main_chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(70), // File list\n            Constraint::Percentage(30), // Details panel\n        ])\n        .split(chunks[1]);\n\n    // File list\n    draw_venv_list(f, main_chunks[0], app);\n\n    // Details panel\n    draw_details_panel(f, main_chunks[1], app);\n\n    // Footer\n    draw_footer(f, chunks[2], app);\n}\n\n/// Draw the header section\nfn draw_header(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let search_mode = if app.is_recursive() { \" (Recursive)\" } else { \" (Current Dir)\" };\n    let title = format!(\"VenvCleaner - {}{}\", app.current_directory().display(), search_mode);\n    let sort_info = format!(\"Sort: {} {}\",\n        app.sort_by().display_name(),\n        if app.sort_by() == SortBy::Size { \"↓\" } else { \"↑\" }\n    );\n\n    let header_chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(70),\n            Constraint::Percentage(30),\n        ])\n        .split(area);\n\n    let title_block = Block::default()\n        .borders(Borders::ALL)\n        .border_style(Style::default().fg(Colors::PRIMARY))\n        .title(title);\n\n    let title_paragraph = Paragraph::new(\"\")\n        .block(title_block);\n\n    let sort_block = Block::default()\n        .borders(Borders::ALL)\n        .border_style(Style::default().fg(Colors::SECONDARY))\n        .title(\"Sort\");\n\n    let sort_paragraph = Paragraph::new(sort_info)\n        .block(sort_block)\n        .alignment(Alignment::Center);\n\n    f.render_widget(title_paragraph, header_chunks[0]);\n    f.render_widget(sort_paragraph, header_chunks[1]);\n}\n\n/// Draw the .venv directory list\nfn draw_venv_list(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let venvs = app.venvs();\n    let selected_index = app.selected_index();\n    let selected_venvs = app.selected_venvs();\n\n    // Get visible range without mutating app\n    let list_height = area.height.saturating_sub(2); // Account for borders\n    let visible_items = list_height as usize;\n\n    let scroll_offset = app.scroll_offset();\n    let start = scroll_offset;\n    let end = (start + visible_items).min(venvs.len());\n    let visible_venvs = &venvs[start..end];\n\n    let items: Vec<ListItem> = visible_venvs\n        .iter()\n        .enumerate()\n        .map(|(i, venv)| {\n            let actual_index = start + i;\n            let is_selected = actual_index == selected_index;\n            let is_marked = selected_venvs.contains(&actual_index);\n\n            let mut spans = vec![];\n\n            // Selection indicator\n            if is_marked {\n                spans.push(Span::styled(\"✓ \", Style::default().fg(Colors::SUCCESS)));\n            } else {\n                spans.push(Span::raw(\"  \"));\n            }\n\n            // Age indicator\n            if venv.is_recently_used() {\n                spans.push(Span::styled(\"🟢 \", Style::default()));\n            } else if venv.is_old() {\n                spans.push(Span::styled(\"🔴 \", Style::default()));\n            } else {\n                spans.push(Span::styled(\"🟡 \", Style::default()));\n            }\n\n            // Path\n            let path_text = format_path_for_display(&venv.location(), 40);\n            spans.push(Span::styled(\n                format!(\"{:<40}\", path_text),\n                if is_selected {\n                    Style::default().fg(Colors::HIGHLIGHT).add_modifier(Modifier::BOLD)\n                } else {\n                    Style::default()\n                }\n            ));\n\n            // Size\n            let size_text = venv.size_formatted();\n            let size_color = if venv.size_bytes() > 1024 * 1024 * 1024 {\n                Colors::ERROR\n            } else if venv.size_bytes() > 100 * 1024 * 1024 {\n                Colors::WARNING\n            } else {\n                Colors::MUTED\n            };\n\n            spans.push(Span::styled(\n                format!(\"{:>12}\", size_text),\n                Style::default().fg(size_color)\n            ));\n\n            // Last used\n            let age_text = format!(\"{}d\", venv.age_in_days());\n            spans.push(Span::styled(\n                format!(\"{:>6}\", age_text),\n                Style::default().fg(Colors::MUTED)\n            ));\n\n            ListItem::new(Line::from(spans))\n        })\n        .collect();\n\n    let list_title = format!(\".venv Directories ({}/{})\",\n        venvs.len(),\n        if selected_venvs.is_empty() {\n            \"none selected\".to_string()\n        } else {\n            format!(\"{} selected\", selected_venvs.len())\n        }\n    );\n\n    let list = List::new(items)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(list_title)\n        )\n        .highlight_style(\n            Style::default()\n                .bg(Colors::SELECTED)\n                .add_modifier(Modifier::BOLD)\n        );\n\n    // Calculate the highlight index relative to the visible range\n    let highlight_index = if selected_index >= start && selected_index < end {\n        Some(selected_index - start)\n    } else {\n        None\n    };\n\n    let mut list_state = ListState::default();\n    if let Some(index) = highlight_index {\n        list_state.select(Some(index));\n    }\n\n    f.render_stateful_widget(list, area, &mut list_state);\n}\n\n/// Draw the details panel\nfn draw_details_panel(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(60), // Selected item details\n            Constraint::Percentage(40), // Summary statistics\n        ])\n        .split(area);\n\n    // Selected item details\n    draw_selected_details(f, chunks[0], app);\n\n    // Summary statistics\n    draw_summary_stats(f, chunks[1], app);\n}\n\n/// Draw details for the selected .venv directory\nfn draw_selected_details(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let mut text = vec![];\n\n    if let Some(venv) = app.selected_venv() {\n        text.push(Line::from(vec![\n            Span::styled(\"Path: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.path().display().to_string()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.size_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Created: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.created_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Last Used: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.last_modified_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Age: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} days\", venv.age_in_days())),\n        ]));\n\n        text.push(Line::from(\"\"));\n\n        // Status indicators\n        if venv.is_recently_used() {\n            text.push(Line::from(vec![\n                Span::styled(\"🟢 \", Style::default()),\n                Span::styled(\"Recently used\", Style::default().fg(Colors::SUCCESS)),\n            ]));\n        } else if venv.is_old() {\n            text.push(Line::from(vec![\n                Span::styled(\"🔴 \", Style::default()),\n                Span::styled(\"Old (>90 days)\", Style::default().fg(Colors::ERROR)),\n            ]));\n        } else {\n            text.push(Line::from(vec![\n                Span::styled(\"🟡 \", Style::default()),\n                Span::styled(\"Moderately used\", Style::default().fg(Colors::WARNING)),\n            ]));\n        }\n\n        if app.is_item_selected(app.selected_index()) {\n            text.push(Line::from(vec![\n                Span::styled(\"✓ \", Style::default().fg(Colors::SUCCESS)),\n                Span::styled(\"Selected for deletion\", Style::default().fg(Colors::SUCCESS)),\n            ]));\n        }\n    } else {\n        text.push(Line::from(\"No .venv directory selected\"));\n    }\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::SECONDARY))\n                .title(\"Details\")\n        )\n        .wrap(Wrap { trim: true });\n\n    f.render_widget(paragraph, area);\n}\n\n/// Draw summary statistics\nfn draw_summary_stats(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let stats = app.get_summary_stats();\n\n    let text = vec![\n        Line::from(vec![\n            Span::styled(\"Total: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} directories\", stats.total_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Selected: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} directories\", stats.selected_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Total Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format_size(stats.total_size)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Selected Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format_size(stats.selected_size)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"🟢 Recent: \", Style::default().fg(Colors::SUCCESS)),\n            Span::raw(format!(\"{}\", stats.recent_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"🔴 Old: \", Style::default().fg(Colors::ERROR)),\n            Span::raw(format!(\"{}\", stats.old_count)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::SECONDARY))\n                .title(\"Summary\")\n        );\n\n    f.render_widget(paragraph, area);\n}\n\n/// Draw the footer with status and shortcuts\nfn draw_footer(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(60), // Status\n            Constraint::Percentage(40), // Shortcuts\n        ])\n        .split(area);\n\n    // Status\n    let status_text = app.status();\n    let status_paragraph = Paragraph::new(status_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Status\")\n        );\n\n    // Shortcuts - show context-sensitive help\n    let shortcuts_text = match app.state() {\n        AppState::Browsing => {\n            if app.has_selected_items() {\n                \"h:Help r:Refresh Space:Toggle x:Delete s:Sort o:Open Ctrl+A:All Ctrl+D:None q:Quit\"\n            } else {\n                \"h:Help r:Refresh Space:Select s:Sort o:Open Ctrl+A:Select All q:Quit\"\n            }\n        }\n        _ => \"h:Help r:Refresh Space:Select x:Delete s:Sort o:Open q:Quit\"\n    };\n    let shortcuts_paragraph = Paragraph::new(shortcuts_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Shortcuts\")\n        );\n\n    f.render_widget(status_paragraph, chunks[0]);\n    f.render_widget(shortcuts_paragraph, chunks[1]);\n}\n\n/// Draw the loading screen\npub fn draw_loading_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(20),\n            Constraint::Length(8),\n            Constraint::Percentage(20),\n            Constraint::Length(5),\n            Constraint::Percentage(50),\n        ])\n        .split(area);\n\n    // Title\n    let title_text = vec![\n        Line::from(vec![\n            Span::styled(\"VenvCleaner TUI\", Style::default().fg(Colors::PRIMARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"🔍 Scanning for .venv directories...\", Style::default().fg(Colors::SECONDARY)),\n        ]),\n    ];\n\n    let title_paragraph = Paragraph::new(title_text)\n        .alignment(Alignment::Center)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Initializing\")\n        );\n\n    // Loading animation\n    let loading_text = format!(\"Loading{}\", \".\".repeat(app.loading_dots()));\n    let loading_paragraph = Paragraph::new(loading_text)\n        .style(Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD))\n        .alignment(Alignment::Center);\n\n    // Status and directory info\n    let status_lines = vec![\n        Line::from(vec![\n            Span::styled(\"Directory: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(app.current_directory().display().to_string()),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Mode: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(if app.is_recursive() { \"Recursive search\" } else { \"Current directory only\" }),\n        ]),\n        Line::from(\"\"),\n        Line::from(app.status()),\n    ];\n\n    let status_paragraph = Paragraph::new(status_lines)\n        .alignment(Alignment::Center)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Status\")\n        );\n\n    f.render_widget(title_paragraph, chunks[1]);\n    f.render_widget(loading_paragraph, chunks[2]);\n    f.render_widget(status_paragraph, chunks[3]);\n}\n\n/// Draw the confirmation dialog\npub fn draw_confirmation_dialog(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let selected_count = app.selected_venvs().len();\n    let selected_venvs = app.get_selected_venvs();\n    let total_size: u64 = selected_venvs.iter().map(|v| v.size_bytes()).sum();\n\n    // Calculate dialog size\n    let dialog_width = 60;\n    let dialog_height = 12;\n    let x = (area.width.saturating_sub(dialog_width)) / 2;\n    let y = (area.height.saturating_sub(dialog_height)) / 2;\n    let dialog_area = Rect::new(x, y, dialog_width, dialog_height);\n\n    // Clear the area behind the dialog\n    f.render_widget(Clear, dialog_area);\n\n    let text = vec![\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"⚠️  Confirm Deletion\", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"You are about to permanently delete \"),\n            Span::styled(format!(\"{}\", selected_count), Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n            Span::raw(\" .venv directories.\"),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"Total size to be freed: \"),\n            Span::styled(format_size(total_size), Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"⚠️  This action cannot be undone!\", Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"The list will automatically refresh after deletion.\"),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press 'y' to confirm deletion or 'n'/Esc to cancel\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::ERROR))\n                .border_type(BorderType::Double)\n                .title(\"Confirm Deletion\")\n        )\n        .alignment(Alignment::Center);\n\n    f.render_widget(paragraph, dialog_area);\n}\n\n/// Draw the deletion progress dialog\npub fn draw_deletion_progress(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let progress = app.deletion_progress();\n\n    // Calculate dialog size\n    let dialog_width = 50;\n    let dialog_height = 8;\n    let x = (area.width.saturating_sub(dialog_width)) / 2;\n    let y = (area.height.saturating_sub(dialog_height)) / 2;\n    let dialog_area = Rect::new(x, y, dialog_width, dialog_height);\n\n    // Clear the area behind the dialog\n    f.render_widget(Clear, dialog_area);\n\n    let progress_ratio = if progress.total > 0 {\n        progress.completed as f64 / progress.total as f64\n    } else {\n        0.0\n    };\n\n    let gauge = Gauge::default()\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Deleting...\")\n        )\n        .gauge_style(Style::default().fg(Colors::SUCCESS))\n        .ratio(progress_ratio)\n        .label(format!(\"{}/{}\", progress.completed, progress.total));\n\n    f.render_widget(gauge, dialog_area);\n}\n\n/// Draw the error screen\npub fn draw_error_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(30),\n            Constraint::Length(10),\n            Constraint::Percentage(60),\n        ])\n        .split(area);\n\n    let error_text = vec![\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"❌ Error\", Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(app.error_message()),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press Enter to continue or 'q' to quit\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(error_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::ERROR))\n                .title(\"Error\")\n        )\n        .alignment(Alignment::Center);\n\n    f.render_widget(paragraph, chunks[1]);\n}\n\n/// Draw the help screen\npub fn draw_help_screen(f: &mut ratatui::Frame, area: Rect) {\n    let help_text = vec![\n        Line::from(vec![\n            Span::styled(\"VenvCleaner TUI Help\", Style::default().fg(Colors::PRIMARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Navigation:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  ↑/↓       - Move selection up/down\"),\n        Line::from(\"  Home/End  - Go to first/last item\"),\n        Line::from(\"  PgUp/PgDn - Page up/down\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Selection:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  Space/Enter - Toggle selection\"),\n        Line::from(\"  Ctrl+A      - Select all\"),\n        Line::from(\"  Ctrl+D      - Deselect all\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Actions:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  x/Del    - Delete selected items\"),\n        Line::from(\"  s        - Cycle sort order\"),\n        Line::from(\"  o        - Open folder in file manager\"),\n        Line::from(\"  r        - Refresh list\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Other:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  h/F1     - Show this help\"),\n        Line::from(\"  q/Esc    - Quit application\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Status Icons:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  🟢 - Recently used (<30 days)\"),\n        Line::from(\"  🟡 - Moderately used (30-90 days)\"),\n        Line::from(\"  🔴 - Old (>90 days)\"),\n        Line::from(\"  ✓  - Selected for deletion\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press any key to return...\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(help_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Help\")\n        )\n        .alignment(Alignment::Left)\n        .wrap(Wrap { trim: true });\n\n    f.render_widget(paragraph, area);\n}\n\n/// Format a file path for display, truncating if necessary\nfn format_path_for_display(path: &str, max_length: usize) -> String {\n    if path.len() <= max_length {\n        path.to_string()\n    } else {\n        format!(\"...{}\", &path[path.len().saturating_sub(max_length - 3)..])\n    }\n}\n\n/// Format a size in bytes to a human-readable string\nfn format_size(bytes: u64) -> String {\n    const KB: u64 = 1024;\n    const MB: u64 = KB * 1024;\n    const GB: u64 = MB * 1024;\n\n    if bytes >= GB {\n        format!(\"{:.2} GB\", bytes as f64 / GB as f64)\n    } else if bytes >= MB {\n        format!(\"{:.2} MB\", bytes as f64 / MB as f64)\n    } else if bytes >= KB {\n        format!(\"{:.2} KB\", bytes as f64 / KB as f64)\n    } else {\n        format!(\"{} bytes\", bytes)\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn test_format_path_for_display() {\n        assert_eq!(format_path_for_display(\"short\", 10), \"short\");\n        assert_eq!(format_path_for_display(\"very/long/path/here\", 10), \"...th/here\");\n    }\n\n    #[test]\n    fn test_format_size() {\n        assert_eq!(format_size(512), \"512 bytes\");\n        assert_eq!(format_size(1536), \"1.50 KB\");\n        assert_eq!(format_size(2 * 1024 * 1024), \"2.00 MB\");\n        assert_eq!(format_size(1024 * 1024 * 1024), \"1.00 GB\");\n    }\n}\n",
+  "old_text": "//! UI rendering for the TUI mode\n//!\n//! This module handles all the UI rendering for the TUI interface, including\n//! the main screen, dialogs, progress bars, and help screens.\n\nuse ratatui::{\n    layout::{Alignment, Constraint, Direction, Layout, Rect},\n    style::{Color, Modifier, Style},\n    text::{Line, Span},\n    widgets::{\n        Block, Borders, Clear, Gauge, List, ListItem, ListState, Paragraph,\n        Wrap, BorderType\n    },\n};\n\nuse super::{TuiApp, SortBy, AppState};\n\n/// Colors used throughout the TUI\npub struct Colors;\n\nimpl Colors {\n    pub const PRIMARY: Color = Color::Cyan;\n    pub const SECONDARY: Color = Color::Yellow;\n    pub const SUCCESS: Color = Color::Green;\n    pub const WARNING: Color = Color::Yellow;\n    pub const ERROR: Color = Color::Red;\n    pub const MUTED: Color = Color::Gray;\n    pub const SELECTED: Color = Color::Blue;\n    pub const HIGHLIGHT: Color = Color::Magenta;\n}\n\n/// Draw the main browsing screen\npub fn draw_main_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Length(3),  // Header\n            Constraint::Min(0),     // Main content\n            Constraint::Length(3),  // Footer\n        ])\n        .split(area);\n\n    // Header\n    draw_header(f, chunks[0], app);\n\n    // Main content area\n    let main_chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(70), // File list\n            Constraint::Percentage(30), // Details panel\n        ])\n        .split(chunks[1]);\n\n    // File list\n    draw_venv_list(f, main_chunks[0], app);\n\n    // Details panel\n    draw_details_panel(f, main_chunks[1], app);\n\n    // Footer\n    draw_footer(f, chunks[2], app);\n}\n\n/// Draw the header section\nfn draw_header(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let search_mode = if app.is_recursive() { \" (Recursive)\" } else { \" (Current Dir)\" };\n    let title = format!(\"VenvCleaner - {}{}\", app.current_directory().display(), search_mode);\n    let sort_info = format!(\"Sort: {} {}\",\n        app.sort_by().display_name(),\n        if app.sort_by() == SortBy::Size { \"↓\" } else { \"↑\" }\n    );\n\n    let header_chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(70),\n            Constraint::Percentage(30),\n        ])\n        .split(area);\n\n    let title_block = Block::default()\n        .borders(Borders::ALL)\n        .border_style(Style::default().fg(Colors::PRIMARY))\n        .title(title);\n\n    let title_paragraph = Paragraph::new(\"\")\n        .block(title_block);\n\n    let sort_block = Block::default()\n        .borders(Borders::ALL)\n        .border_style(Style::default().fg(Colors::SECONDARY))\n        .title(\"Sort\");\n\n    let sort_paragraph = Paragraph::new(sort_info)\n        .block(sort_block)\n        .alignment(Alignment::Center);\n\n    f.render_widget(title_paragraph, header_chunks[0]);\n    f.render_widget(sort_paragraph, header_chunks[1]);\n}\n\n/// Draw the .venv directory list\nfn draw_venv_list(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let venvs = app.venvs();\n    let selected_index = app.selected_index();\n    let selected_venvs = app.selected_venvs();\n\n    // Get visible range without mutating app\n    let list_height = area.height.saturating_sub(2); // Account for borders\n    let visible_items = list_height as usize;\n\n    let scroll_offset = app.scroll_offset();\n    let start = scroll_offset;\n    let end = (start + visible_items).min(venvs.len());\n    let visible_venvs = &venvs[start..end];\n\n    let items: Vec<ListItem> = visible_venvs\n        .iter()\n        .enumerate()\n        .map(|(i, venv)| {\n            let actual_index = start + i;\n            let is_selected = actual_index == selected_index;\n            let is_marked = selected_venvs.contains(&actual_index);\n\n            let mut spans = vec![];\n\n            // Selection indicator\n            if is_marked {\n                spans.push(Span::styled(\"✓ \", Style::default().fg(Colors::SUCCESS)));\n            } else {\n                spans.push(Span::raw(\"  \"));\n            }\n\n            // Age indicator\n            if venv.is_recently_used() {\n                spans.push(Span::styled(\"🟢 \", Style::default()));\n            } else if venv.is_old() {\n                spans.push(Span::styled(\"🔴 \", Style::default()));\n            } else {\n                spans.push(Span::styled(\"🟡 \", Style::default()));\n            }\n\n            // Path\n            let path_text = format_path_for_display(&venv.location(), 40);\n            spans.push(Span::styled(\n                format!(\"{:<40}\", path_text),\n                if is_selected {\n                    Style::default().fg(Colors::HIGHLIGHT).add_modifier(Modifier::BOLD)\n                } else {\n                    Style::default()\n                }\n            ));\n\n            // Size\n            let size_text = venv.size_formatted();\n            let size_color = if venv.size_bytes() > 1024 * 1024 * 1024 {\n                Colors::ERROR\n            } else if venv.size_bytes() > 100 * 1024 * 1024 {\n                Colors::WARNING\n            } else {\n                Colors::MUTED\n            };\n\n            spans.push(Span::styled(\n                format!(\"{:>12}\", size_text),\n                Style::default().fg(size_color)\n            ));\n\n            // Last used\n            let age_text = format!(\"{}d\", venv.age_in_days());\n            spans.push(Span::styled(\n                format!(\"{:>6}\", age_text),\n                Style::default().fg(Colors::MUTED)\n            ));\n\n            ListItem::new(Line::from(spans))\n        })\n        .collect();\n\n    let list_title = format!(\".venv Directories ({}/{})\",\n        venvs.len(),\n        if selected_venvs.is_empty() {\n            \"none selected\".to_string()\n        } else {\n            format!(\"{} selected\", selected_venvs.len())\n        }\n    );\n\n    let list = List::new(items)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(list_title)\n        )\n        .highlight_style(\n            Style::default()\n                .bg(Colors::SELECTED)\n                .add_modifier(Modifier::BOLD)\n        );\n\n    // Calculate the highlight index relative to the visible range\n    let highlight_index = if selected_index >= start && selected_index < end {\n        Some(selected_index - start)\n    } else {\n        None\n    };\n\n    let mut list_state = ListState::default();\n    if let Some(index) = highlight_index {\n        list_state.select(Some(index));\n    }\n\n    f.render_stateful_widget(list, area, &mut list_state);\n}\n\n/// Draw the details panel\nfn draw_details_panel(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(60), // Selected item details\n            Constraint::Percentage(40), // Summary statistics\n        ])\n        .split(area);\n\n    // Selected item details\n    draw_selected_details(f, chunks[0], app);\n\n    // Summary statistics\n    draw_summary_stats(f, chunks[1], app);\n}\n\n/// Draw details for the selected .venv directory\nfn draw_selected_details(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let mut text = vec![];\n\n    if let Some(venv) = app.selected_venv() {\n        text.push(Line::from(vec![\n            Span::styled(\"Path: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.path().display().to_string()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.size_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Created: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.created_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Last Used: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.last_modified_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Age: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} days\", venv.age_in_days())),\n        ]));\n\n        text.push(Line::from(\"\"));\n\n        // Status indicators\n        if venv.is_recently_used() {\n            text.push(Line::from(vec![\n                Span::styled(\"🟢 \", Style::default()),\n                Span::styled(\"Recently used\", Style::default().fg(Colors::SUCCESS)),\n            ]));\n        } else if venv.is_old() {\n            text.push(Line::from(vec![\n                Span::styled(\"🔴 \", Style::default()),\n                Span::styled(\"Old (>90 days)\", Style::default().fg(Colors::ERROR)),\n            ]));\n        } else {\n            text.push(Line::from(vec![\n                Span::styled(\"🟡 \", Style::default()),\n                Span::styled(\"Moderately used\", Style::default().fg(Colors::WARNING)),\n            ]));\n        }\n\n        if app.is_item_selected(app.selected_index()) {\n            text.push(Line::from(vec![\n                Span::styled(\"✓ \", Style::default().fg(Colors::SUCCESS)),\n                Span::styled(\"Selected for deletion\", Style::default().fg(Colors::SUCCESS)),\n            ]));\n        }\n    } else {\n        text.push(Line::from(\"No .venv directory selected\"));\n    }\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::SECONDARY))\n                .title(\"Details\")\n        )\n        .wrap(Wrap { trim: true });\n\n    f.render_widget(paragraph, area);\n}\n\n/// Draw summary statistics\nfn draw_summary_stats(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let stats = app.get_summary_stats();\n\n    let text = vec![\n        Line::from(vec![\n            Span::styled(\"Total: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} directories\", stats.total_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Selected: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} directories\", stats.selected_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Total Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format_size(stats.total_size)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Selected Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format_size(stats.selected_size)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"🟢 Recent: \", Style::default().fg(Colors::SUCCESS)),\n            Span::raw(format!(\"{}\", stats.recent_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"🔴 Old: \", Style::default().fg(Colors::ERROR)),\n            Span::raw(format!(\"{}\", stats.old_count)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::SECONDARY))\n                .title(\"Summary\")\n        );\n\n    f.render_widget(paragraph, area);\n}\n\n/// Draw the footer with status and shortcuts\nfn draw_footer(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(60), // Status\n            Constraint::Percentage(40), // Shortcuts\n        ])\n        .split(area);\n\n    // Status\n    let status_text = app.status();\n    let status_paragraph = Paragraph::new(status_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Status\")\n        );\n\n    // Shortcuts - show context-sensitive help\n    let shortcuts_text = match app.state() {\n        AppState::Browsing => {\n            if app.has_selected_items() {\n                \"h:Help r:Refresh Space:Toggle x:Delete s:Sort o:Open Ctrl+A:All Ctrl+D:None q:Quit\"\n            } else {\n                \"h:Help r:Refresh Space:Select s:Sort o:Open Ctrl+A:Select All q:Quit\"\n            }\n        }\n        _ => \"h:Help r:Refresh Space:Select x:Delete s:Sort o:Open q:Quit\"\n    };\n    let shortcuts_paragraph = Paragraph::new(shortcuts_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Shortcuts\")\n        );\n\n    f.render_widget(status_paragraph, chunks[0]);\n    f.render_widget(shortcuts_paragraph, chunks[1]);\n}\n\n/// Draw the loading screen\npub fn draw_loading_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(40),\n            Constraint::Length(3),\n            Constraint::Percentage(60),\n        ])\n        .split(area);\n\n    let loading_text = format!(\"Loading{}\", \".\".repeat(app.loading_dots()));\n    let loading_paragraph = Paragraph::new(loading_text)\n        .style(Style::default().fg(Colors::PRIMARY))\n        .alignment(Alignment::Center);\n\n    let status_text = app.status();\n    let status_paragraph = Paragraph::new(status_text)\n        .style(Style::default().fg(Colors::MUTED))\n        .alignment(Alignment::Center);\n\n    f.render_widget(loading_paragraph, chunks[1]);\n    f.render_widget(status_paragraph, chunks[2]);\n}\n\n/// Draw the confirmation dialog\npub fn draw_confirmation_dialog(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let selected_count = app.selected_venvs().len();\n    let selected_venvs = app.get_selected_venvs();\n    let total_size: u64 = selected_venvs.iter().map(|v| v.size_bytes()).sum();\n\n    // Calculate dialog size\n    let dialog_width = 60;\n    let dialog_height = 12;\n    let x = (area.width.saturating_sub(dialog_width)) / 2;\n    let y = (area.height.saturating_sub(dialog_height)) / 2;\n    let dialog_area = Rect::new(x, y, dialog_width, dialog_height);\n\n    // Clear the area behind the dialog\n    f.render_widget(Clear, dialog_area);\n\n    let text = vec![\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"⚠️  Confirm Deletion\", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"You are about to permanently delete \"),\n            Span::styled(format!(\"{}\", selected_count), Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n            Span::raw(\" .venv directories.\"),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"Total size to be freed: \"),\n            Span::styled(format_size(total_size), Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"⚠️  This action cannot be undone!\", Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"The list will automatically refresh after deletion.\"),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press 'y' to confirm deletion or 'n'/Esc to cancel\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::ERROR))\n                .border_type(BorderType::Double)\n                .title(\"Confirm Deletion\")\n        )\n        .alignment(Alignment::Center);\n\n    f.render_widget(paragraph, dialog_area);\n}\n\n/// Draw the deletion progress dialog\npub fn draw_deletion_progress(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let progress = app.deletion_progress();\n\n    // Calculate dialog size\n    let dialog_width = 50;\n    let dialog_height = 8;\n    let x = (area.width.saturating_sub(dialog_width)) / 2;\n    let y = (area.height.saturating_sub(dialog_height)) / 2;\n    let dialog_area = Rect::new(x, y, dialog_width, dialog_height);\n\n    // Clear the area behind the dialog\n    f.render_widget(Clear, dialog_area);\n\n    let progress_ratio = if progress.total > 0 {\n        progress.completed as f64 / progress.total as f64\n    } else {\n        0.0\n    };\n\n    let gauge = Gauge::default()\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Deleting...\")\n        )\n        .gauge_style(Style::default().fg(Colors::SUCCESS))\n        .ratio(progress_ratio)\n        .label(format!(\"{}/{}\", progress.completed, progress.total));\n\n    f.render_widget(gauge, dialog_area);\n}\n\n/// Draw the error screen\npub fn draw_error_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(30),\n            Constraint::Length(10),\n            Constraint::Percentage(60),\n        ])\n        .split(area);\n\n    let error_text = vec![\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"❌ Error\", Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(app.error_message()),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press Enter to continue or 'q' to quit\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(error_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::ERROR))\n                .title(\"Error\")\n        )\n        .alignment(Alignment::Center);\n\n    f.render_widget(paragraph, chunks[1]);\n}\n\n/// Draw the help screen\npub fn draw_help_screen(f: &mut ratatui::Frame, area: Rect) {\n    let help_text = vec![\n        Line::from(vec![\n            Span::styled(\"VenvCleaner TUI Help\", Style::default().fg(Colors::PRIMARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Navigation:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  ↑/↓       - Move selection up/down\"),\n        Line::from(\"  Home/End  - Go to first/last item\"),\n        Line::from(\"  PgUp/PgDn - Page up/down\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Selection:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  Space/Enter - Toggle selection\"),\n        Line::from(\"  Ctrl+A      - Select all\"),\n        Line::from(\"  Ctrl+D      - Deselect all\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Actions:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  x/Del    - Delete selected items\"),\n        Line::from(\"  s        - Cycle sort order\"),\n        Line::from(\"  o        - Open folder in file manager\"),\n        Line::from(\"  r        - Refresh list\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Other:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  h/F1     - Show this help\"),\n        Line::from(\"  q/Esc    - Quit application\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Status Icons:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  🟢 - Recently used (<30 days)\"),\n        Line::from(\"  🟡 - Moderately used (30-90 days)\"),\n        Line::from(\"  🔴 - Old (>90 days)\"),\n        Line::from(\"  ✓  - Selected for deletion\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press any key to return...\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(help_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Help\")\n        )\n        .alignment(Alignment::Left)\n        .wrap(Wrap { trim: true });\n\n    f.render_widget(paragraph, area);\n}\n\n/// Format a file path for display, truncating if necessary\nfn format_path_for_display(path: &str, max_length: usize) -> String {\n    if path.len() <= max_length {\n        path.to_string()\n    } else {\n        format!(\"...{}\", &path[path.len().saturating_sub(max_length - 3)..])\n    }\n}\n\n/// Format a size in bytes to a human-readable string\nfn format_size(bytes: u64) -> String {\n    const KB: u64 = 1024;\n    const MB: u64 = KB * 1024;\n    const GB: u64 = MB * 1024;\n\n    if bytes >= GB {\n        format!(\"{:.2} GB\", bytes as f64 / GB as f64)\n    } else if bytes >= MB {\n        format!(\"{:.2} MB\", bytes as f64 / MB as f64)\n    } else if bytes >= KB {\n        format!(\"{:.2} KB\", bytes as f64 / KB as f64)\n    } else {\n        format!(\"{} bytes\", bytes)\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn test_format_path_for_display() {\n        assert_eq!(format_path_for_display(\"short\", 10), \"short\");\n        assert_eq!(format_path_for_display(\"very/long/path/here\", 10), \"...th/here\");\n    }\n\n    #[test]\n    fn test_format_size() {\n        assert_eq!(format_size(512), \"512 bytes\");\n        assert_eq!(format_size(1536), \"1.50 KB\");\n        assert_eq!(format_size(2 * 1024 * 1024), \"2.00 MB\");\n        assert_eq!(format_size(1024 * 1024 * 1024), \"1.00 GB\");\n    }\n}\n",
+  "raw_output": {
+    "raw_edits": "<edits>\n\n<old_text>\n/// Draw the loading screen\npub fn draw_loading_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(40),\n            Constraint::Length(3),\n            Constraint::Percentage(60),\n        ])\n        .split(area);\n\n    let loading_text = format!(\"Loading{}\", \".\".repeat(app.loading_dots()));\n    let loading_paragraph = Paragraph::new(loading_text)\n        .style(Style::default().fg(Colors::PRIMARY))\n        .alignment(Alignment::Center);\n\n    let status_text = app.status();\n    let status_paragraph = Paragraph::new(status_text)\n        .style(Style::default().fg(Colors::MUTED))\n        .alignment(Alignment::Center);\n\n    f.render_widget(loading_paragraph, chunks[1]);\n    f.render_widget(status_paragraph, chunks[2]);\n}\n</old_text>\n<new_text>\n/// Draw the loading screen\npub fn draw_loading_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(20),\n            Constraint::Length(8),\n            Constraint::Percentage(20),\n            Constraint::Length(5),\n            Constraint::Percentage(50),\n        ])\n        .split(area);\n\n    // Title\n    let title_text = vec![\n        Line::from(vec![\n            Span::styled(\"VenvCleaner TUI\", Style::default().fg(Colors::PRIMARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"🔍 Scanning for .venv directories...\", Style::default().fg(Colors::SECONDARY)),\n        ]),\n    ];\n\n    let title_paragraph = Paragraph::new(title_text)\n        .alignment(Alignment::Center)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Initializing\")\n        );\n\n    // Loading animation\n    let loading_text = format!(\"Loading{}\", \".\".repeat(app.loading_dots()));\n    let loading_paragraph = Paragraph::new(loading_text)\n        .style(Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD))\n        .alignment(Alignment::Center);\n\n    // Status and directory info\n    let status_lines = vec![\n        Line::from(vec![\n            Span::styled(\"Directory: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(app.current_directory().display().to_string()),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Mode: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(if app.is_recursive() { \"Recursive search\" } else { \"Current directory only\" }),\n        ]),\n        Line::from(\"\"),\n        Line::from(app.status()),\n    ];\n\n    let status_paragraph = Paragraph::new(status_lines)\n        .alignment(Alignment::Center)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Status\")\n        );\n\n    f.render_widget(title_paragraph, chunks[1]);\n    f.render_widget(loading_paragraph, chunks[2]);\n    f.render_widget(status_paragraph, chunks[3]);\n}\n</new_text>\n\n</edits>",
+    "parser_metrics": {
+      "tags": 2,
+      "mismatched_tags": 0
+    }
+  }
+}
+```
+
+## Agent
+
+Let me also improve the initial loading feedback by adding more specific messages during the scanning process:
+
+**Use Tool: edit_file (toolu_01AWaxtQYKTJLrz1u8au4BqT)**
+```json
+{
+  "display_description": "Add more detailed scanning progress messages in TUI mode",
+  "mode": "edit",
+  "path": "VenvCleaner/src/tui/mod.rs"
+}
+```
+
+**Tool Results: toolu_01AWaxtQYKTJLrz1u8au4BqT**
+
+Edited VenvCleaner/src/tui/mod.rs:
+
+```diff
+@@ -227,7 +227,22 @@
+     fn start_loading_venvs(&mut self) -> Result<()> {
+         self.app.set_state(AppState::Loading);
+         let search_mode = if self.cleaner.is_recursive() { "recursively" } else { "in current directory" };
+-        self.app.set_status(format!("Searching for .venv directories {}...", search_mode));
++        self.app.set_status(format!("🔍 Scanning for .venv directories {}...", search_mode));
++
++        // Draw initial scanning message
++        self.terminal.draw(|f| {
++            let size = f.size();
++            ui::draw_loading_screen(f, size, &self.app);
++        })?;
++
++        // Update status to show we're analyzing directories
++        self.app.set_status(format!("📁 Analyzing directories {}...", search_mode));
++
++        // Draw updated status
++        self.terminal.draw(|f| {
++            let size = f.size();
++            ui::draw_loading_screen(f, size, &self.app);
++        })?;
+
+         // In a real implementation, this would spawn a background task
+         // For now, we'll do it synchronously but show the loading state
+@@ -235,6 +250,13 @@
+
+         match venvs {
+             Ok(venvs) => {
++                // Show completion message briefly
++                self.app.set_status(format!("✅ Scan complete! Processing {} directories...", venvs.len()));
++                self.terminal.draw(|f| {
++                    let size = f.size();
++                    ui::draw_loading_screen(f, size, &self.app);
++                })?;
++
+                 self.app.set_venvs(venvs);
+                 self.app.set_state(AppState::Browsing);
+                 let count = self.app.venvs().len();
+
+```
+
+
+Debug Output:
+
+```json
+{
+  "original_path": "src/tui/mod.rs",
+  "new_text": "//! TUI module for VenvCleaner\n//!\n//! This module handles the Terminal User Interface for interactive .venv directory management.\n//! It provides a full-screen terminal interface using ratatui with keyboard navigation,\n//! sorting options, and interactive deletion capabilities.\n\nuse std::io;\nuse std::time::Duration;\nuse crossterm::{\n    event::{DisableMouseCapture, EnableMouseCapture, KeyEvent, KeyCode, KeyModifiers},\n    execute,\n    terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},\n};\nuse ratatui::{\n    backend::CrosstermBackend,\n    Terminal,\n};\nuse log::info;\n\nuse crate::core::{VenvCleaner, Result};\n\npub mod app;\npub mod ui;\npub mod events;\n\npub use app::TuiApp;\npub use events::{AppEvent, EventHandler};\n\n/// Main TUI mode handler for VenvCleaner\npub struct TuiMode {\n    /// The core VenvCleaner instance\n    cleaner: VenvCleaner,\n    /// Terminal interface\n    terminal: Terminal<CrosstermBackend<io::Stdout>>,\n    /// Application state\n    app: TuiApp,\n    /// Event handler for user input\n    event_handler: EventHandler,\n}\n\n/// Application states for the TUI\n#[derive(Debug, Clone, PartialEq)]\npub enum AppState {\n    /// Loading .venv directories\n    Loading,\n    /// Browsing .venv directories\n    Browsing,\n    /// Confirming deletion of selected directories\n    ConfirmingDeletion,\n    /// Deleting directories\n    Deleting,\n    /// Showing error message\n    Error,\n    /// Showing help screen\n    Help,\n    /// Application should quit\n    Quit,\n}\n\n/// Sorting options for .venv directories\n#[derive(Debug, Clone, Copy, PartialEq)]\npub enum SortBy {\n    /// Sort by path (alphabetical)\n    Path,\n    /// Sort by size (largest first)\n    Size,\n    /// Sort by creation date (newest first)\n    Created,\n    /// Sort by last modified date (most recent first)\n    LastModified,\n}\n\nimpl SortBy {\n    /// Get the next sort option in sequence\n    pub fn next(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::Size,\n            SortBy::Size => SortBy::Created,\n            SortBy::Created => SortBy::LastModified,\n            SortBy::LastModified => SortBy::Path,\n        }\n    }\n\n    /// Get the previous sort option in sequence\n    pub fn previous(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::LastModified,\n            SortBy::Size => SortBy::Path,\n            SortBy::Created => SortBy::Size,\n            SortBy::LastModified => SortBy::Created,\n        }\n    }\n\n    /// Get the display name for this sort option\n    pub fn display_name(self) -> &'static str {\n        match self {\n            SortBy::Path => \"Path\",\n            SortBy::Size => \"Size\",\n            SortBy::Created => \"Created\",\n            SortBy::LastModified => \"Last Used\",\n        }\n    }\n}\n\nimpl TuiMode {\n    /// Create a new TuiMode instance\n    pub fn new(\n        base_directory: std::path::PathBuf,\n        recursive: bool,\n        verbosity: u8,\n    ) -> Result<Self> {\n        // Setup terminal\n        terminal::enable_raw_mode()?;\n        let mut stdout = io::stdout();\n        execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;\n        let backend = CrosstermBackend::new(stdout);\n        let terminal = Terminal::new(backend)?;\n\n        // Create VenvCleaner instance\n        let cleaner = VenvCleaner::new(\n            base_directory.clone(),\n            recursive,\n            false, // force_mode = false for TUI\n            false, // dry_run = false (we handle this in TUI)\n            verbosity,\n        );\n\n        // Create application state\n        let mut app = TuiApp::new();\n        app.set_current_directory(base_directory, recursive);\n\n        // Create event handler\n        let event_handler = EventHandler::new(Duration::from_millis(250))?;\n\n        Ok(Self {\n            cleaner,\n            terminal,\n            app,\n            event_handler,\n        })\n    }\n\n    /// Run the TUI application\n    pub fn run(&mut self) -> Result<()> {\n        info!(\"Starting TUI mode\");\n\n        // Set initial loading state before drawing anything\n        self.app.set_state(AppState::Loading);\n        self.app.set_status(\"Initializing VenvCleaner TUI...\".to_string());\n\n        // Draw initial loading screen immediately\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // Start loading .venv directories in the background\n        self.start_loading_venvs()?;\n\n        // Main event loop\n        loop {\n            // Draw the UI\n            let app_ref = &self.app;\n            self.terminal.draw(|f| {\n                let size = f.size();\n                match app_ref.state() {\n                    AppState::Loading => {\n                        ui::draw_loading_screen(f, size, app_ref);\n                    }\n                    AppState::Browsing => {\n                        ui::draw_main_screen(f, size, app_ref);\n                    }\n                    AppState::ConfirmingDeletion => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_confirmation_dialog(f, size, app_ref);\n                    }\n                    AppState::Deleting => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_deletion_progress(f, size, app_ref);\n                    }\n                    AppState::Error => {\n                        ui::draw_error_screen(f, size, app_ref);\n                    }\n                    AppState::Help => {\n                        ui::draw_help_screen(f, size);\n                    }\n                    AppState::Quit => {\n                        // Should not reach here\n                    }\n                }\n            })?;\n\n            // Handle events\n            if let Ok(event) = self.event_handler.next() {\n                match event {\n                    AppEvent::Input(key_event) => {\n                        if self.handle_key_event(key_event)? {\n                            break; // Exit requested\n                        }\n                    }\n                    AppEvent::Tick => {\n                        self.handle_tick()?;\n                    }\n                    AppEvent::VenvsLoaded(venvs) => {\n                        self.app.set_venvs(venvs);\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    AppEvent::LoadError(error) => {\n                        self.app.set_error(error);\n                        self.app.set_state(AppState::Error);\n                    }\n                    AppEvent::DeletionComplete(results) => {\n                        self.app.handle_deletion_results(results);\n                        // Refresh the list by reloading after a short delay to show completion\n                        self.app.set_state(AppState::Loading);\n                        self.start_loading_venvs()?;\n                    }\n                }\n            }\n        }\n\n        self.cleanup()?;\n        Ok(())\n    }\n\n    /// Start loading .venv directories in the background\n    fn start_loading_venvs(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Loading);\n        let search_mode = if self.cleaner.is_recursive() { \"recursively\" } else { \"in current directory\" };\n        self.app.set_status(format!(\"🔍 Scanning for .venv directories {}...\", search_mode));\n\n        // Draw initial scanning message\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // Update status to show we're analyzing directories\n        self.app.set_status(format!(\"📁 Analyzing directories {}...\", search_mode));\n\n        // Draw updated status\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // In a real implementation, this would spawn a background task\n        // For now, we'll do it synchronously but show the loading state\n        let venvs = self.cleaner.find_venv_directories();\n\n        match venvs {\n            Ok(venvs) => {\n                // Show completion message briefly\n                self.app.set_status(format!(\"✅ Scan complete! Processing {} directories...\", venvs.len()));\n                self.terminal.draw(|f| {\n                    let size = f.size();\n                    ui::draw_loading_screen(f, size, &self.app);\n                })?;\n\n                self.app.set_venvs(venvs);\n                self.app.set_state(AppState::Browsing);\n                let count = self.app.venvs().len();\n                if count == 0 {\n                    self.app.set_status(\"No .venv directories found. Press 'r' to refresh or 'q' to quit.\".to_string());\n                } else {\n                    self.app.set_status(format!(\"Found {} .venv directories. Use arrow keys to navigate, Space to select.\", count));\n                }\n            }\n            Err(e) => {\n                self.app.set_error(e.to_string());\n                self.app.set_state(AppState::Error);\n            }\n        }\n\n        Ok(())\n    }\n\n    /// Handle keyboard input events\n    fn handle_key_event(&mut self, key: KeyEvent) -> Result<bool> {\n        match self.app.state() {\n            AppState::Loading => {\n                // Only allow quit during loading\n                if matches!(key.code, KeyCode::Char('q') | KeyCode::Esc) {\n                    return Ok(true);\n                }\n            }\n            AppState::Browsing => {\n                match key.code {\n                    KeyCode::Char('q') | KeyCode::Esc => return Ok(true),\n                    KeyCode::Char('h') | KeyCode::F(1) => {\n                        self.app.set_state(AppState::Help);\n                    }\n                    KeyCode::Char('r') => {\n                        self.start_loading_venvs()?;\n                    }\n                    KeyCode::Up => {\n                        self.app.select_previous();\n                    }\n                    KeyCode::Down => {\n                        self.app.select_next();\n                    }\n                    KeyCode::Home => {\n                        self.app.select_first();\n                    }\n                    KeyCode::End => {\n                        self.app.select_last();\n                    }\n                    KeyCode::PageUp => {\n                        self.app.page_up();\n                    }\n                    KeyCode::PageDown => {\n                        self.app.page_down();\n                    }\n                    KeyCode::Enter | KeyCode::Char(' ') => {\n                        self.app.toggle_selected();\n                    }\n                    KeyCode::Char('a') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.select_all();\n                        }\n                    }\n                    KeyCode::Char('d') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.deselect_all();\n                        }\n                    }\n                    KeyCode::Delete | KeyCode::Char('x') => {\n                        if self.app.has_selected_items() {\n                            self.app.set_state(AppState::ConfirmingDeletion);\n                        }\n                    }\n                    KeyCode::Char('s') => {\n                        self.app.cycle_sort();\n                        self.app.set_status(format!(\"Sorted by {}\", self.app.sort_by().display_name()));\n                    }\n                    KeyCode::Char('o') => {\n                        self.app.open_folder()?;\n                    }\n                    _ => {}\n                }\n            }\n            AppState::ConfirmingDeletion => {\n                match key.code {\n                    KeyCode::Char('y') | KeyCode::Enter => {\n                        self.start_deletion()?;\n                    }\n                    KeyCode::Char('n') | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    _ => {}\n                }\n            }\n            AppState::Deleting => {\n                // Only allow force quit during deletion\n                if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {\n                    return Ok(true);\n                }\n            }\n            AppState::Error => {\n                match key.code {\n                    KeyCode::Enter | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    KeyCode::Char('q') => return Ok(true),\n                    _ => {}\n                }\n            }\n            AppState::Help => {\n                // Any key exits help\n                self.app.set_state(AppState::Browsing);\n            }\n            AppState::Quit => {\n                return Ok(true);\n            }\n        }\n\n        Ok(false)\n    }\n\n    /// Handle tick events (periodic updates)\n    fn handle_tick(&mut self) -> Result<()> {\n        // Update any animations or periodic state changes\n        self.app.tick();\n        Ok(())\n    }\n\n    /// Start the deletion process for selected .venv directories\n    fn start_deletion(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Deleting);\n        self.app.set_status(\"Deleting selected directories...\".to_string());\n\n        let selected_venvs = self.app.get_selected_venvs();\n        let mut results = Vec::new();\n\n        for venv in &selected_venvs {\n            let result = self.cleaner.delete_venv_directory(venv);\n            results.push((venv.clone(), result));\n        }\n\n        // Calculate stats before moving results\n        let deleted_count = results.iter().filter(|(_, r)| r.is_ok()).count();\n        let failed_count = results.len() - deleted_count;\n\n        self.app.handle_deletion_results(results);\n\n        // Set a brief completion message\n\n        if failed_count == 0 {\n            self.app.set_status(format!(\"Successfully deleted {} directories. Refreshing list...\", deleted_count));\n        } else {\n            self.app.set_status(format!(\"Deleted {} directories, {} failed. Refreshing list...\", deleted_count, failed_count));\n        }\n\n        // Trigger a refresh by going back to loading state\n        self.app.set_state(AppState::Loading);\n        self.start_loading_venvs()?;\n\n        Ok(())\n    }\n\n    /// Draw the user interface\n    fn draw_ui(&self, f: &mut ratatui::Frame) {\n        let size = f.size();\n\n        match self.app.state() {\n            AppState::Loading => {\n                ui::draw_loading_screen(f, size, &self.app);\n            }\n            AppState::Browsing => {\n                ui::draw_main_screen(f, size, &self.app);\n            }\n            AppState::ConfirmingDeletion => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_confirmation_dialog(f, size, &self.app);\n            }\n            AppState::Deleting => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_deletion_progress(f, size, &self.app);\n            }\n            AppState::Error => {\n                ui::draw_error_screen(f, size, &self.app);\n            }\n            AppState::Help => {\n                ui::draw_help_screen(f, size);\n            }\n            AppState::Quit => {\n                // Should not reach here\n            }\n        }\n    }\n\n    /// Clean up terminal state before exiting\n    fn cleanup(&mut self) -> Result<()> {\n        terminal::disable_raw_mode()?;\n        execute!(\n            self.terminal.backend_mut(),\n            LeaveAlternateScreen,\n            DisableMouseCapture\n        )?;\n        self.terminal.show_cursor()?;\n        Ok(())\n    }\n}\n\nimpl Drop for TuiMode {\n    fn drop(&mut self) {\n        // Ensure cleanup happens even if there's a panic\n        let _ = self.cleanup();\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n    use tempfile::TempDir;\n\n    #[test]\n    fn test_sort_by_cycle() {\n        assert_eq!(SortBy::Path.next(), SortBy::Size);\n        assert_eq!(SortBy::Size.next(), SortBy::Created);\n        assert_eq!(SortBy::Created.next(), SortBy::LastModified);\n        assert_eq!(SortBy::LastModified.next(), SortBy::Path);\n    }\n\n    #[test]\n    fn test_sort_by_previous() {\n        assert_eq!(SortBy::Path.previous(), SortBy::LastModified);\n        assert_eq!(SortBy::Size.previous(), SortBy::Path);\n        assert_eq!(SortBy::Created.previous(), SortBy::Size);\n        assert_eq!(SortBy::LastModified.previous(), SortBy::Created);\n    }\n\n    #[test]\n    fn test_sort_by_display_names() {\n        assert_eq!(SortBy::Path.display_name(), \"Path\");\n        assert_eq!(SortBy::Size.display_name(), \"Size\");\n        assert_eq!(SortBy::Created.display_name(), \"Created\");\n        assert_eq!(SortBy::LastModified.display_name(), \"Last Used\");\n    }\n}\n",
+  "old_text": "//! TUI module for VenvCleaner\n//!\n//! This module handles the Terminal User Interface for interactive .venv directory management.\n//! It provides a full-screen terminal interface using ratatui with keyboard navigation,\n//! sorting options, and interactive deletion capabilities.\n\nuse std::io;\nuse std::time::Duration;\nuse crossterm::{\n    event::{DisableMouseCapture, EnableMouseCapture, KeyEvent, KeyCode, KeyModifiers},\n    execute,\n    terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},\n};\nuse ratatui::{\n    backend::CrosstermBackend,\n    Terminal,\n};\nuse log::info;\n\nuse crate::core::{VenvCleaner, Result};\n\npub mod app;\npub mod ui;\npub mod events;\n\npub use app::TuiApp;\npub use events::{AppEvent, EventHandler};\n\n/// Main TUI mode handler for VenvCleaner\npub struct TuiMode {\n    /// The core VenvCleaner instance\n    cleaner: VenvCleaner,\n    /// Terminal interface\n    terminal: Terminal<CrosstermBackend<io::Stdout>>,\n    /// Application state\n    app: TuiApp,\n    /// Event handler for user input\n    event_handler: EventHandler,\n}\n\n/// Application states for the TUI\n#[derive(Debug, Clone, PartialEq)]\npub enum AppState {\n    /// Loading .venv directories\n    Loading,\n    /// Browsing .venv directories\n    Browsing,\n    /// Confirming deletion of selected directories\n    ConfirmingDeletion,\n    /// Deleting directories\n    Deleting,\n    /// Showing error message\n    Error,\n    /// Showing help screen\n    Help,\n    /// Application should quit\n    Quit,\n}\n\n/// Sorting options for .venv directories\n#[derive(Debug, Clone, Copy, PartialEq)]\npub enum SortBy {\n    /// Sort by path (alphabetical)\n    Path,\n    /// Sort by size (largest first)\n    Size,\n    /// Sort by creation date (newest first)\n    Created,\n    /// Sort by last modified date (most recent first)\n    LastModified,\n}\n\nimpl SortBy {\n    /// Get the next sort option in sequence\n    pub fn next(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::Size,\n            SortBy::Size => SortBy::Created,\n            SortBy::Created => SortBy::LastModified,\n            SortBy::LastModified => SortBy::Path,\n        }\n    }\n\n    /// Get the previous sort option in sequence\n    pub fn previous(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::LastModified,\n            SortBy::Size => SortBy::Path,\n            SortBy::Created => SortBy::Size,\n            SortBy::LastModified => SortBy::Created,\n        }\n    }\n\n    /// Get the display name for this sort option\n    pub fn display_name(self) -> &'static str {\n        match self {\n            SortBy::Path => \"Path\",\n            SortBy::Size => \"Size\",\n            SortBy::Created => \"Created\",\n            SortBy::LastModified => \"Last Used\",\n        }\n    }\n}\n\nimpl TuiMode {\n    /// Create a new TuiMode instance\n    pub fn new(\n        base_directory: std::path::PathBuf,\n        recursive: bool,\n        verbosity: u8,\n    ) -> Result<Self> {\n        // Setup terminal\n        terminal::enable_raw_mode()?;\n        let mut stdout = io::stdout();\n        execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;\n        let backend = CrosstermBackend::new(stdout);\n        let terminal = Terminal::new(backend)?;\n\n        // Create VenvCleaner instance\n        let cleaner = VenvCleaner::new(\n            base_directory.clone(),\n            recursive,\n            false, // force_mode = false for TUI\n            false, // dry_run = false (we handle this in TUI)\n            verbosity,\n        );\n\n        // Create application state\n        let mut app = TuiApp::new();\n        app.set_current_directory(base_directory, recursive);\n\n        // Create event handler\n        let event_handler = EventHandler::new(Duration::from_millis(250))?;\n\n        Ok(Self {\n            cleaner,\n            terminal,\n            app,\n            event_handler,\n        })\n    }\n\n    /// Run the TUI application\n    pub fn run(&mut self) -> Result<()> {\n        info!(\"Starting TUI mode\");\n\n        // Set initial loading state before drawing anything\n        self.app.set_state(AppState::Loading);\n        self.app.set_status(\"Initializing VenvCleaner TUI...\".to_string());\n\n        // Draw initial loading screen immediately\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // Start loading .venv directories in the background\n        self.start_loading_venvs()?;\n\n        // Main event loop\n        loop {\n            // Draw the UI\n            let app_ref = &self.app;\n            self.terminal.draw(|f| {\n                let size = f.size();\n                match app_ref.state() {\n                    AppState::Loading => {\n                        ui::draw_loading_screen(f, size, app_ref);\n                    }\n                    AppState::Browsing => {\n                        ui::draw_main_screen(f, size, app_ref);\n                    }\n                    AppState::ConfirmingDeletion => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_confirmation_dialog(f, size, app_ref);\n                    }\n                    AppState::Deleting => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_deletion_progress(f, size, app_ref);\n                    }\n                    AppState::Error => {\n                        ui::draw_error_screen(f, size, app_ref);\n                    }\n                    AppState::Help => {\n                        ui::draw_help_screen(f, size);\n                    }\n                    AppState::Quit => {\n                        // Should not reach here\n                    }\n                }\n            })?;\n\n            // Handle events\n            if let Ok(event) = self.event_handler.next() {\n                match event {\n                    AppEvent::Input(key_event) => {\n                        if self.handle_key_event(key_event)? {\n                            break; // Exit requested\n                        }\n                    }\n                    AppEvent::Tick => {\n                        self.handle_tick()?;\n                    }\n                    AppEvent::VenvsLoaded(venvs) => {\n                        self.app.set_venvs(venvs);\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    AppEvent::LoadError(error) => {\n                        self.app.set_error(error);\n                        self.app.set_state(AppState::Error);\n                    }\n                    AppEvent::DeletionComplete(results) => {\n                        self.app.handle_deletion_results(results);\n                        // Refresh the list by reloading after a short delay to show completion\n                        self.app.set_state(AppState::Loading);\n                        self.start_loading_venvs()?;\n                    }\n                }\n            }\n        }\n\n        self.cleanup()?;\n        Ok(())\n    }\n\n    /// Start loading .venv directories in the background\n    fn start_loading_venvs(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Loading);\n        let search_mode = if self.cleaner.is_recursive() { \"recursively\" } else { \"in current directory\" };\n        self.app.set_status(format!(\"Searching for .venv directories {}...\", search_mode));\n\n        // In a real implementation, this would spawn a background task\n        // For now, we'll do it synchronously but show the loading state\n        let venvs = self.cleaner.find_venv_directories();\n\n        match venvs {\n            Ok(venvs) => {\n                self.app.set_venvs(venvs);\n                self.app.set_state(AppState::Browsing);\n                let count = self.app.venvs().len();\n                if count == 0 {\n                    self.app.set_status(\"No .venv directories found. Press 'r' to refresh or 'q' to quit.\".to_string());\n                } else {\n                    self.app.set_status(format!(\"Found {} .venv directories. Use arrow keys to navigate, Space to select.\", count));\n                }\n            }\n            Err(e) => {\n                self.app.set_error(e.to_string());\n                self.app.set_state(AppState::Error);\n            }\n        }\n\n        Ok(())\n    }\n\n    /// Handle keyboard input events\n    fn handle_key_event(&mut self, key: KeyEvent) -> Result<bool> {\n        match self.app.state() {\n            AppState::Loading => {\n                // Only allow quit during loading\n                if matches!(key.code, KeyCode::Char('q') | KeyCode::Esc) {\n                    return Ok(true);\n                }\n            }\n            AppState::Browsing => {\n                match key.code {\n                    KeyCode::Char('q') | KeyCode::Esc => return Ok(true),\n                    KeyCode::Char('h') | KeyCode::F(1) => {\n                        self.app.set_state(AppState::Help);\n                    }\n                    KeyCode::Char('r') => {\n                        self.start_loading_venvs()?;\n                    }\n                    KeyCode::Up => {\n                        self.app.select_previous();\n                    }\n                    KeyCode::Down => {\n                        self.app.select_next();\n                    }\n                    KeyCode::Home => {\n                        self.app.select_first();\n                    }\n                    KeyCode::End => {\n                        self.app.select_last();\n                    }\n                    KeyCode::PageUp => {\n                        self.app.page_up();\n                    }\n                    KeyCode::PageDown => {\n                        self.app.page_down();\n                    }\n                    KeyCode::Enter | KeyCode::Char(' ') => {\n                        self.app.toggle_selected();\n                    }\n                    KeyCode::Char('a') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.select_all();\n                        }\n                    }\n                    KeyCode::Char('d') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.deselect_all();\n                        }\n                    }\n                    KeyCode::Delete | KeyCode::Char('x') => {\n                        if self.app.has_selected_items() {\n                            self.app.set_state(AppState::ConfirmingDeletion);\n                        }\n                    }\n                    KeyCode::Char('s') => {\n                        self.app.cycle_sort();\n                        self.app.set_status(format!(\"Sorted by {}\", self.app.sort_by().display_name()));\n                    }\n                    KeyCode::Char('o') => {\n                        self.app.open_folder()?;\n                    }\n                    _ => {}\n                }\n            }\n            AppState::ConfirmingDeletion => {\n                match key.code {\n                    KeyCode::Char('y') | KeyCode::Enter => {\n                        self.start_deletion()?;\n                    }\n                    KeyCode::Char('n') | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    _ => {}\n                }\n            }\n            AppState::Deleting => {\n                // Only allow force quit during deletion\n                if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {\n                    return Ok(true);\n                }\n            }\n            AppState::Error => {\n                match key.code {\n                    KeyCode::Enter | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    KeyCode::Char('q') => return Ok(true),\n                    _ => {}\n                }\n            }\n            AppState::Help => {\n                // Any key exits help\n                self.app.set_state(AppState::Browsing);\n            }\n            AppState::Quit => {\n                return Ok(true);\n            }\n        }\n\n        Ok(false)\n    }\n\n    /// Handle tick events (periodic updates)\n    fn handle_tick(&mut self) -> Result<()> {\n        // Update any animations or periodic state changes\n        self.app.tick();\n        Ok(())\n    }\n\n    /// Start the deletion process for selected .venv directories\n    fn start_deletion(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Deleting);\n        self.app.set_status(\"Deleting selected directories...\".to_string());\n\n        let selected_venvs = self.app.get_selected_venvs();\n        let mut results = Vec::new();\n\n        for venv in &selected_venvs {\n            let result = self.cleaner.delete_venv_directory(venv);\n            results.push((venv.clone(), result));\n        }\n\n        // Calculate stats before moving results\n        let deleted_count = results.iter().filter(|(_, r)| r.is_ok()).count();\n        let failed_count = results.len() - deleted_count;\n\n        self.app.handle_deletion_results(results);\n\n        // Set a brief completion message\n\n        if failed_count == 0 {\n            self.app.set_status(format!(\"Successfully deleted {} directories. Refreshing list...\", deleted_count));\n        } else {\n            self.app.set_status(format!(\"Deleted {} directories, {} failed. Refreshing list...\", deleted_count, failed_count));\n        }\n\n        // Trigger a refresh by going back to loading state\n        self.app.set_state(AppState::Loading);\n        self.start_loading_venvs()?;\n\n        Ok(())\n    }\n\n    /// Draw the user interface\n    fn draw_ui(&self, f: &mut ratatui::Frame) {\n        let size = f.size();\n\n        match self.app.state() {\n            AppState::Loading => {\n                ui::draw_loading_screen(f, size, &self.app);\n            }\n            AppState::Browsing => {\n                ui::draw_main_screen(f, size, &self.app);\n            }\n            AppState::ConfirmingDeletion => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_confirmation_dialog(f, size, &self.app);\n            }\n            AppState::Deleting => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_deletion_progress(f, size, &self.app);\n            }\n            AppState::Error => {\n                ui::draw_error_screen(f, size, &self.app);\n            }\n            AppState::Help => {\n                ui::draw_help_screen(f, size);\n            }\n            AppState::Quit => {\n                // Should not reach here\n            }\n        }\n    }\n\n    /// Clean up terminal state before exiting\n    fn cleanup(&mut self) -> Result<()> {\n        terminal::disable_raw_mode()?;\n        execute!(\n            self.terminal.backend_mut(),\n            LeaveAlternateScreen,\n            DisableMouseCapture\n        )?;\n        self.terminal.show_cursor()?;\n        Ok(())\n    }\n}\n\nimpl Drop for TuiMode {\n    fn drop(&mut self) {\n        // Ensure cleanup happens even if there's a panic\n        let _ = self.cleanup();\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n    use tempfile::TempDir;\n\n    #[test]\n    fn test_sort_by_cycle() {\n        assert_eq!(SortBy::Path.next(), SortBy::Size);\n        assert_eq!(SortBy::Size.next(), SortBy::Created);\n        assert_eq!(SortBy::Created.next(), SortBy::LastModified);\n        assert_eq!(SortBy::LastModified.next(), SortBy::Path);\n    }\n\n    #[test]\n    fn test_sort_by_previous() {\n        assert_eq!(SortBy::Path.previous(), SortBy::LastModified);\n        assert_eq!(SortBy::Size.previous(), SortBy::Path);\n        assert_eq!(SortBy::Created.previous(), SortBy::Size);\n        assert_eq!(SortBy::LastModified.previous(), SortBy::Created);\n    }\n\n    #[test]\n    fn test_sort_by_display_names() {\n        assert_eq!(SortBy::Path.display_name(), \"Path\");\n        assert_eq!(SortBy::Size.display_name(), \"Size\");\n        assert_eq!(SortBy::Created.display_name(), \"Created\");\n        assert_eq!(SortBy::LastModified.display_name(), \"Last Used\");\n    }\n}\n",
+  "raw_output": {
+    "raw_edits": "<edits>\n\n<old_text>\n    /// Start loading .venv directories in the background\n    fn start_loading_venvs(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Loading);\n        let search_mode = if self.cleaner.is_recursive() { \"recursively\" } else { \"in current directory\" };\n        self.app.set_status(format!(\"Searching for .venv directories {}...\", search_mode));\n\n        // In a real implementation, this would spawn a background task\n        // For now, we'll do it synchronously but show the loading state\n        let venvs = self.cleaner.find_venv_directories();\n\n        match venvs {\n            Ok(venvs) => {\n                self.app.set_venvs(venvs);\n                self.app.set_state(AppState::Browsing);\n                let count = self.app.venvs().len();\n                if count == 0 {\n                    self.app.set_status(\"No .venv directories found. Press 'r' to refresh or 'q' to quit.\".to_string());\n                } else {\n                    self.app.set_status(format!(\"Found {} .venv directories. Use arrow keys to navigate, Space to select.\", count));\n                }\n            }\n            Err(e) => {\n                self.app.set_error(e.to_string());\n                self.app.set_state(AppState::Error);\n            }\n        }\n\n        Ok(())\n    }\n</old_text>\n<new_text>\n    /// Start loading .venv directories in the background\n    fn start_loading_venvs(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Loading);\n        let search_mode = if self.cleaner.is_recursive() { \"recursively\" } else { \"in current directory\" };\n        self.app.set_status(format!(\"🔍 Scanning for .venv directories {}...\", search_mode));\n\n        // Draw initial scanning message\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // Update status to show we're analyzing directories\n        self.app.set_status(format!(\"📁 Analyzing directories {}...\", search_mode));\n        \n        // Draw updated status\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // In a real implementation, this would spawn a background task\n        // For now, we'll do it synchronously but show the loading state\n        let venvs = self.cleaner.find_venv_directories();\n\n        match venvs {\n            Ok(venvs) => {\n                // Show completion message briefly\n                self.app.set_status(format!(\"✅ Scan complete! Processing {} directories...\", venvs.len()));\n                self.terminal.draw(|f| {\n                    let size = f.size();\n                    ui::draw_loading_screen(f, size, &self.app);\n                })?;\n                \n                self.app.set_venvs(venvs);\n                self.app.set_state(AppState::Browsing);\n                let count = self.app.venvs().len();\n                if count == 0 {\n                    self.app.set_status(\"No .venv directories found. Press 'r' to refresh or 'q' to quit.\".to_string());\n                } else {\n                    self.app.set_status(format!(\"Found {} .venv directories. Use arrow keys to navigate, Space to select.\", count));\n                }\n            }\n            Err(e) => {\n                self.app.set_error(e.to_string());\n                self.app.set_state(AppState::Error);\n            }\n        }\n\n        Ok(())\n    }\n</new_text>\n\n</edits>",
+    "parser_metrics": {
+      "tags": 2,
+      "mismatched_tags": 0
+    }
+  }
+}
+```
+
+## Agent
+
+Let me also add a small delay to make the scanning feedback more visible and add keyboard shortcuts that work during the loading phase:
+
+**Use Tool: edit_file (toolu_019zgqLjgK7ze6ncD13Rk9kj)**
+```json
+{
+  "display_description": "Add brief delays and keyboard support during TUI loading phase",
+  "mode": "edit",
+  "path": "VenvCleaner/src/tui/mod.rs"
+}
+```
+
+**Tool Results: toolu_019zgqLjgK7ze6ncD13Rk9kj**
+
+Edited VenvCleaner/src/tui/mod.rs:
+
+```diff
+@@ -246,6 +246,10 @@
+
+         // In a real implementation, this would spawn a background task
+         // For now, we'll do it synchronously but show the loading state
++
++        // Add a brief delay to show the scanning message
++        std::thread::sleep(std::time::Duration::from_millis(200));
++
+         let venvs = self.cleaner.find_venv_directories();
+
+         match venvs {
+@@ -256,6 +260,9 @@
+                     let size = f.size();
+                     ui::draw_loading_screen(f, size, &self.app);
+                 })?;
++
++                // Brief delay to show completion message
++                std::thread::sleep(std::time::Duration::from_millis(300));
+
+                 self.app.set_venvs(venvs);
+                 self.app.set_state(AppState::Browsing);
+
+```
+
+
+Debug Output:
+
+```json
+{
+  "original_path": "src/tui/mod.rs",
+  "new_text": "//! TUI module for VenvCleaner\n//!\n//! This module handles the Terminal User Interface for interactive .venv directory management.\n//! It provides a full-screen terminal interface using ratatui with keyboard navigation,\n//! sorting options, and interactive deletion capabilities.\n\nuse std::io;\nuse std::time::Duration;\nuse crossterm::{\n    event::{DisableMouseCapture, EnableMouseCapture, KeyEvent, KeyCode, KeyModifiers},\n    execute,\n    terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},\n};\nuse ratatui::{\n    backend::CrosstermBackend,\n    Terminal,\n};\nuse log::info;\n\nuse crate::core::{VenvCleaner, Result};\n\npub mod app;\npub mod ui;\npub mod events;\n\npub use app::TuiApp;\npub use events::{AppEvent, EventHandler};\n\n/// Main TUI mode handler for VenvCleaner\npub struct TuiMode {\n    /// The core VenvCleaner instance\n    cleaner: VenvCleaner,\n    /// Terminal interface\n    terminal: Terminal<CrosstermBackend<io::Stdout>>,\n    /// Application state\n    app: TuiApp,\n    /// Event handler for user input\n    event_handler: EventHandler,\n}\n\n/// Application states for the TUI\n#[derive(Debug, Clone, PartialEq)]\npub enum AppState {\n    /// Loading .venv directories\n    Loading,\n    /// Browsing .venv directories\n    Browsing,\n    /// Confirming deletion of selected directories\n    ConfirmingDeletion,\n    /// Deleting directories\n    Deleting,\n    /// Showing error message\n    Error,\n    /// Showing help screen\n    Help,\n    /// Application should quit\n    Quit,\n}\n\n/// Sorting options for .venv directories\n#[derive(Debug, Clone, Copy, PartialEq)]\npub enum SortBy {\n    /// Sort by path (alphabetical)\n    Path,\n    /// Sort by size (largest first)\n    Size,\n    /// Sort by creation date (newest first)\n    Created,\n    /// Sort by last modified date (most recent first)\n    LastModified,\n}\n\nimpl SortBy {\n    /// Get the next sort option in sequence\n    pub fn next(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::Size,\n            SortBy::Size => SortBy::Created,\n            SortBy::Created => SortBy::LastModified,\n            SortBy::LastModified => SortBy::Path,\n        }\n    }\n\n    /// Get the previous sort option in sequence\n    pub fn previous(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::LastModified,\n            SortBy::Size => SortBy::Path,\n            SortBy::Created => SortBy::Size,\n            SortBy::LastModified => SortBy::Created,\n        }\n    }\n\n    /// Get the display name for this sort option\n    pub fn display_name(self) -> &'static str {\n        match self {\n            SortBy::Path => \"Path\",\n            SortBy::Size => \"Size\",\n            SortBy::Created => \"Created\",\n            SortBy::LastModified => \"Last Used\",\n        }\n    }\n}\n\nimpl TuiMode {\n    /// Create a new TuiMode instance\n    pub fn new(\n        base_directory: std::path::PathBuf,\n        recursive: bool,\n        verbosity: u8,\n    ) -> Result<Self> {\n        // Setup terminal\n        terminal::enable_raw_mode()?;\n        let mut stdout = io::stdout();\n        execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;\n        let backend = CrosstermBackend::new(stdout);\n        let terminal = Terminal::new(backend)?;\n\n        // Create VenvCleaner instance\n        let cleaner = VenvCleaner::new(\n            base_directory.clone(),\n            recursive,\n            false, // force_mode = false for TUI\n            false, // dry_run = false (we handle this in TUI)\n            verbosity,\n        );\n\n        // Create application state\n        let mut app = TuiApp::new();\n        app.set_current_directory(base_directory, recursive);\n\n        // Create event handler\n        let event_handler = EventHandler::new(Duration::from_millis(250))?;\n\n        Ok(Self {\n            cleaner,\n            terminal,\n            app,\n            event_handler,\n        })\n    }\n\n    /// Run the TUI application\n    pub fn run(&mut self) -> Result<()> {\n        info!(\"Starting TUI mode\");\n\n        // Set initial loading state before drawing anything\n        self.app.set_state(AppState::Loading);\n        self.app.set_status(\"Initializing VenvCleaner TUI...\".to_string());\n\n        // Draw initial loading screen immediately\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // Start loading .venv directories in the background\n        self.start_loading_venvs()?;\n\n        // Main event loop\n        loop {\n            // Draw the UI\n            let app_ref = &self.app;\n            self.terminal.draw(|f| {\n                let size = f.size();\n                match app_ref.state() {\n                    AppState::Loading => {\n                        ui::draw_loading_screen(f, size, app_ref);\n                    }\n                    AppState::Browsing => {\n                        ui::draw_main_screen(f, size, app_ref);\n                    }\n                    AppState::ConfirmingDeletion => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_confirmation_dialog(f, size, app_ref);\n                    }\n                    AppState::Deleting => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_deletion_progress(f, size, app_ref);\n                    }\n                    AppState::Error => {\n                        ui::draw_error_screen(f, size, app_ref);\n                    }\n                    AppState::Help => {\n                        ui::draw_help_screen(f, size);\n                    }\n                    AppState::Quit => {\n                        // Should not reach here\n                    }\n                }\n            })?;\n\n            // Handle events\n            if let Ok(event) = self.event_handler.next() {\n                match event {\n                    AppEvent::Input(key_event) => {\n                        if self.handle_key_event(key_event)? {\n                            break; // Exit requested\n                        }\n                    }\n                    AppEvent::Tick => {\n                        self.handle_tick()?;\n                    }\n                    AppEvent::VenvsLoaded(venvs) => {\n                        self.app.set_venvs(venvs);\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    AppEvent::LoadError(error) => {\n                        self.app.set_error(error);\n                        self.app.set_state(AppState::Error);\n                    }\n                    AppEvent::DeletionComplete(results) => {\n                        self.app.handle_deletion_results(results);\n                        // Refresh the list by reloading after a short delay to show completion\n                        self.app.set_state(AppState::Loading);\n                        self.start_loading_venvs()?;\n                    }\n                }\n            }\n        }\n\n        self.cleanup()?;\n        Ok(())\n    }\n\n    /// Start loading .venv directories in the background\n    fn start_loading_venvs(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Loading);\n        let search_mode = if self.cleaner.is_recursive() { \"recursively\" } else { \"in current directory\" };\n        self.app.set_status(format!(\"🔍 Scanning for .venv directories {}...\", search_mode));\n\n        // Draw initial scanning message\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // Update status to show we're analyzing directories\n        self.app.set_status(format!(\"📁 Analyzing directories {}...\", search_mode));\n\n        // Draw updated status\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // In a real implementation, this would spawn a background task\n        // For now, we'll do it synchronously but show the loading state\n\n        // Add a brief delay to show the scanning message\n        std::thread::sleep(std::time::Duration::from_millis(200));\n\n        let venvs = self.cleaner.find_venv_directories();\n\n        match venvs {\n            Ok(venvs) => {\n                // Show completion message briefly\n                self.app.set_status(format!(\"✅ Scan complete! Processing {} directories...\", venvs.len()));\n                self.terminal.draw(|f| {\n                    let size = f.size();\n                    ui::draw_loading_screen(f, size, &self.app);\n                })?;\n\n                // Brief delay to show completion message\n                std::thread::sleep(std::time::Duration::from_millis(300));\n\n                self.app.set_venvs(venvs);\n                self.app.set_state(AppState::Browsing);\n                let count = self.app.venvs().len();\n                if count == 0 {\n                    self.app.set_status(\"No .venv directories found. Press 'r' to refresh or 'q' to quit.\".to_string());\n                } else {\n                    self.app.set_status(format!(\"Found {} .venv directories. Use arrow keys to navigate, Space to select.\", count));\n                }\n            }\n            Err(e) => {\n                self.app.set_error(e.to_string());\n                self.app.set_state(AppState::Error);\n            }\n        }\n\n        Ok(())\n    }\n\n    /// Handle keyboard input events\n    fn handle_key_event(&mut self, key: KeyEvent) -> Result<bool> {\n        match self.app.state() {\n            AppState::Loading => {\n                // Only allow quit during loading\n                if matches!(key.code, KeyCode::Char('q') | KeyCode::Esc) {\n                    return Ok(true);\n                }\n            }\n            AppState::Browsing => {\n                match key.code {\n                    KeyCode::Char('q') | KeyCode::Esc => return Ok(true),\n                    KeyCode::Char('h') | KeyCode::F(1) => {\n                        self.app.set_state(AppState::Help);\n                    }\n                    KeyCode::Char('r') => {\n                        self.start_loading_venvs()?;\n                    }\n                    KeyCode::Up => {\n                        self.app.select_previous();\n                    }\n                    KeyCode::Down => {\n                        self.app.select_next();\n                    }\n                    KeyCode::Home => {\n                        self.app.select_first();\n                    }\n                    KeyCode::End => {\n                        self.app.select_last();\n                    }\n                    KeyCode::PageUp => {\n                        self.app.page_up();\n                    }\n                    KeyCode::PageDown => {\n                        self.app.page_down();\n                    }\n                    KeyCode::Enter | KeyCode::Char(' ') => {\n                        self.app.toggle_selected();\n                    }\n                    KeyCode::Char('a') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.select_all();\n                        }\n                    }\n                    KeyCode::Char('d') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.deselect_all();\n                        }\n                    }\n                    KeyCode::Delete | KeyCode::Char('x') => {\n                        if self.app.has_selected_items() {\n                            self.app.set_state(AppState::ConfirmingDeletion);\n                        }\n                    }\n                    KeyCode::Char('s') => {\n                        self.app.cycle_sort();\n                        self.app.set_status(format!(\"Sorted by {}\", self.app.sort_by().display_name()));\n                    }\n                    KeyCode::Char('o') => {\n                        self.app.open_folder()?;\n                    }\n                    _ => {}\n                }\n            }\n            AppState::ConfirmingDeletion => {\n                match key.code {\n                    KeyCode::Char('y') | KeyCode::Enter => {\n                        self.start_deletion()?;\n                    }\n                    KeyCode::Char('n') | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    _ => {}\n                }\n            }\n            AppState::Deleting => {\n                // Only allow force quit during deletion\n                if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {\n                    return Ok(true);\n                }\n            }\n            AppState::Error => {\n                match key.code {\n                    KeyCode::Enter | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    KeyCode::Char('q') => return Ok(true),\n                    _ => {}\n                }\n            }\n            AppState::Help => {\n                // Any key exits help\n                self.app.set_state(AppState::Browsing);\n            }\n            AppState::Quit => {\n                return Ok(true);\n            }\n        }\n\n        Ok(false)\n    }\n\n    /// Handle tick events (periodic updates)\n    fn handle_tick(&mut self) -> Result<()> {\n        // Update any animations or periodic state changes\n        self.app.tick();\n        Ok(())\n    }\n\n    /// Start the deletion process for selected .venv directories\n    fn start_deletion(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Deleting);\n        self.app.set_status(\"Deleting selected directories...\".to_string());\n\n        let selected_venvs = self.app.get_selected_venvs();\n        let mut results = Vec::new();\n\n        for venv in &selected_venvs {\n            let result = self.cleaner.delete_venv_directory(venv);\n            results.push((venv.clone(), result));\n        }\n\n        // Calculate stats before moving results\n        let deleted_count = results.iter().filter(|(_, r)| r.is_ok()).count();\n        let failed_count = results.len() - deleted_count;\n\n        self.app.handle_deletion_results(results);\n\n        // Set a brief completion message\n\n        if failed_count == 0 {\n            self.app.set_status(format!(\"Successfully deleted {} directories. Refreshing list...\", deleted_count));\n        } else {\n            self.app.set_status(format!(\"Deleted {} directories, {} failed. Refreshing list...\", deleted_count, failed_count));\n        }\n\n        // Trigger a refresh by going back to loading state\n        self.app.set_state(AppState::Loading);\n        self.start_loading_venvs()?;\n\n        Ok(())\n    }\n\n    /// Draw the user interface\n    fn draw_ui(&self, f: &mut ratatui::Frame) {\n        let size = f.size();\n\n        match self.app.state() {\n            AppState::Loading => {\n                ui::draw_loading_screen(f, size, &self.app);\n            }\n            AppState::Browsing => {\n                ui::draw_main_screen(f, size, &self.app);\n            }\n            AppState::ConfirmingDeletion => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_confirmation_dialog(f, size, &self.app);\n            }\n            AppState::Deleting => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_deletion_progress(f, size, &self.app);\n            }\n            AppState::Error => {\n                ui::draw_error_screen(f, size, &self.app);\n            }\n            AppState::Help => {\n                ui::draw_help_screen(f, size);\n            }\n            AppState::Quit => {\n                // Should not reach here\n            }\n        }\n    }\n\n    /// Clean up terminal state before exiting\n    fn cleanup(&mut self) -> Result<()> {\n        terminal::disable_raw_mode()?;\n        execute!(\n            self.terminal.backend_mut(),\n            LeaveAlternateScreen,\n            DisableMouseCapture\n        )?;\n        self.terminal.show_cursor()?;\n        Ok(())\n    }\n}\n\nimpl Drop for TuiMode {\n    fn drop(&mut self) {\n        // Ensure cleanup happens even if there's a panic\n        let _ = self.cleanup();\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n    use tempfile::TempDir;\n\n    #[test]\n    fn test_sort_by_cycle() {\n        assert_eq!(SortBy::Path.next(), SortBy::Size);\n        assert_eq!(SortBy::Size.next(), SortBy::Created);\n        assert_eq!(SortBy::Created.next(), SortBy::LastModified);\n        assert_eq!(SortBy::LastModified.next(), SortBy::Path);\n    }\n\n    #[test]\n    fn test_sort_by_previous() {\n        assert_eq!(SortBy::Path.previous(), SortBy::LastModified);\n        assert_eq!(SortBy::Size.previous(), SortBy::Path);\n        assert_eq!(SortBy::Created.previous(), SortBy::Size);\n        assert_eq!(SortBy::LastModified.previous(), SortBy::Created);\n    }\n\n    #[test]\n    fn test_sort_by_display_names() {\n        assert_eq!(SortBy::Path.display_name(), \"Path\");\n        assert_eq!(SortBy::Size.display_name(), \"Size\");\n        assert_eq!(SortBy::Created.display_name(), \"Created\");\n        assert_eq!(SortBy::LastModified.display_name(), \"Last Used\");\n    }\n}\n",
+  "old_text": "//! TUI module for VenvCleaner\n//!\n//! This module handles the Terminal User Interface for interactive .venv directory management.\n//! It provides a full-screen terminal interface using ratatui with keyboard navigation,\n//! sorting options, and interactive deletion capabilities.\n\nuse std::io;\nuse std::time::Duration;\nuse crossterm::{\n    event::{DisableMouseCapture, EnableMouseCapture, KeyEvent, KeyCode, KeyModifiers},\n    execute,\n    terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},\n};\nuse ratatui::{\n    backend::CrosstermBackend,\n    Terminal,\n};\nuse log::info;\n\nuse crate::core::{VenvCleaner, Result};\n\npub mod app;\npub mod ui;\npub mod events;\n\npub use app::TuiApp;\npub use events::{AppEvent, EventHandler};\n\n/// Main TUI mode handler for VenvCleaner\npub struct TuiMode {\n    /// The core VenvCleaner instance\n    cleaner: VenvCleaner,\n    /// Terminal interface\n    terminal: Terminal<CrosstermBackend<io::Stdout>>,\n    /// Application state\n    app: TuiApp,\n    /// Event handler for user input\n    event_handler: EventHandler,\n}\n\n/// Application states for the TUI\n#[derive(Debug, Clone, PartialEq)]\npub enum AppState {\n    /// Loading .venv directories\n    Loading,\n    /// Browsing .venv directories\n    Browsing,\n    /// Confirming deletion of selected directories\n    ConfirmingDeletion,\n    /// Deleting directories\n    Deleting,\n    /// Showing error message\n    Error,\n    /// Showing help screen\n    Help,\n    /// Application should quit\n    Quit,\n}\n\n/// Sorting options for .venv directories\n#[derive(Debug, Clone, Copy, PartialEq)]\npub enum SortBy {\n    /// Sort by path (alphabetical)\n    Path,\n    /// Sort by size (largest first)\n    Size,\n    /// Sort by creation date (newest first)\n    Created,\n    /// Sort by last modified date (most recent first)\n    LastModified,\n}\n\nimpl SortBy {\n    /// Get the next sort option in sequence\n    pub fn next(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::Size,\n            SortBy::Size => SortBy::Created,\n            SortBy::Created => SortBy::LastModified,\n            SortBy::LastModified => SortBy::Path,\n        }\n    }\n\n    /// Get the previous sort option in sequence\n    pub fn previous(self) -> Self {\n        match self {\n            SortBy::Path => SortBy::LastModified,\n            SortBy::Size => SortBy::Path,\n            SortBy::Created => SortBy::Size,\n            SortBy::LastModified => SortBy::Created,\n        }\n    }\n\n    /// Get the display name for this sort option\n    pub fn display_name(self) -> &'static str {\n        match self {\n            SortBy::Path => \"Path\",\n            SortBy::Size => \"Size\",\n            SortBy::Created => \"Created\",\n            SortBy::LastModified => \"Last Used\",\n        }\n    }\n}\n\nimpl TuiMode {\n    /// Create a new TuiMode instance\n    pub fn new(\n        base_directory: std::path::PathBuf,\n        recursive: bool,\n        verbosity: u8,\n    ) -> Result<Self> {\n        // Setup terminal\n        terminal::enable_raw_mode()?;\n        let mut stdout = io::stdout();\n        execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;\n        let backend = CrosstermBackend::new(stdout);\n        let terminal = Terminal::new(backend)?;\n\n        // Create VenvCleaner instance\n        let cleaner = VenvCleaner::new(\n            base_directory.clone(),\n            recursive,\n            false, // force_mode = false for TUI\n            false, // dry_run = false (we handle this in TUI)\n            verbosity,\n        );\n\n        // Create application state\n        let mut app = TuiApp::new();\n        app.set_current_directory(base_directory, recursive);\n\n        // Create event handler\n        let event_handler = EventHandler::new(Duration::from_millis(250))?;\n\n        Ok(Self {\n            cleaner,\n            terminal,\n            app,\n            event_handler,\n        })\n    }\n\n    /// Run the TUI application\n    pub fn run(&mut self) -> Result<()> {\n        info!(\"Starting TUI mode\");\n\n        // Set initial loading state before drawing anything\n        self.app.set_state(AppState::Loading);\n        self.app.set_status(\"Initializing VenvCleaner TUI...\".to_string());\n\n        // Draw initial loading screen immediately\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // Start loading .venv directories in the background\n        self.start_loading_venvs()?;\n\n        // Main event loop\n        loop {\n            // Draw the UI\n            let app_ref = &self.app;\n            self.terminal.draw(|f| {\n                let size = f.size();\n                match app_ref.state() {\n                    AppState::Loading => {\n                        ui::draw_loading_screen(f, size, app_ref);\n                    }\n                    AppState::Browsing => {\n                        ui::draw_main_screen(f, size, app_ref);\n                    }\n                    AppState::ConfirmingDeletion => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_confirmation_dialog(f, size, app_ref);\n                    }\n                    AppState::Deleting => {\n                        ui::draw_main_screen(f, size, app_ref);\n                        ui::draw_deletion_progress(f, size, app_ref);\n                    }\n                    AppState::Error => {\n                        ui::draw_error_screen(f, size, app_ref);\n                    }\n                    AppState::Help => {\n                        ui::draw_help_screen(f, size);\n                    }\n                    AppState::Quit => {\n                        // Should not reach here\n                    }\n                }\n            })?;\n\n            // Handle events\n            if let Ok(event) = self.event_handler.next() {\n                match event {\n                    AppEvent::Input(key_event) => {\n                        if self.handle_key_event(key_event)? {\n                            break; // Exit requested\n                        }\n                    }\n                    AppEvent::Tick => {\n                        self.handle_tick()?;\n                    }\n                    AppEvent::VenvsLoaded(venvs) => {\n                        self.app.set_venvs(venvs);\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    AppEvent::LoadError(error) => {\n                        self.app.set_error(error);\n                        self.app.set_state(AppState::Error);\n                    }\n                    AppEvent::DeletionComplete(results) => {\n                        self.app.handle_deletion_results(results);\n                        // Refresh the list by reloading after a short delay to show completion\n                        self.app.set_state(AppState::Loading);\n                        self.start_loading_venvs()?;\n                    }\n                }\n            }\n        }\n\n        self.cleanup()?;\n        Ok(())\n    }\n\n    /// Start loading .venv directories in the background\n    fn start_loading_venvs(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Loading);\n        let search_mode = if self.cleaner.is_recursive() { \"recursively\" } else { \"in current directory\" };\n        self.app.set_status(format!(\"🔍 Scanning for .venv directories {}...\", search_mode));\n\n        // Draw initial scanning message\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // Update status to show we're analyzing directories\n        self.app.set_status(format!(\"📁 Analyzing directories {}...\", search_mode));\n\n        // Draw updated status\n        self.terminal.draw(|f| {\n            let size = f.size();\n            ui::draw_loading_screen(f, size, &self.app);\n        })?;\n\n        // In a real implementation, this would spawn a background task\n        // For now, we'll do it synchronously but show the loading state\n        let venvs = self.cleaner.find_venv_directories();\n\n        match venvs {\n            Ok(venvs) => {\n                // Show completion message briefly\n                self.app.set_status(format!(\"✅ Scan complete! Processing {} directories...\", venvs.len()));\n                self.terminal.draw(|f| {\n                    let size = f.size();\n                    ui::draw_loading_screen(f, size, &self.app);\n                })?;\n\n                self.app.set_venvs(venvs);\n                self.app.set_state(AppState::Browsing);\n                let count = self.app.venvs().len();\n                if count == 0 {\n                    self.app.set_status(\"No .venv directories found. Press 'r' to refresh or 'q' to quit.\".to_string());\n                } else {\n                    self.app.set_status(format!(\"Found {} .venv directories. Use arrow keys to navigate, Space to select.\", count));\n                }\n            }\n            Err(e) => {\n                self.app.set_error(e.to_string());\n                self.app.set_state(AppState::Error);\n            }\n        }\n\n        Ok(())\n    }\n\n    /// Handle keyboard input events\n    fn handle_key_event(&mut self, key: KeyEvent) -> Result<bool> {\n        match self.app.state() {\n            AppState::Loading => {\n                // Only allow quit during loading\n                if matches!(key.code, KeyCode::Char('q') | KeyCode::Esc) {\n                    return Ok(true);\n                }\n            }\n            AppState::Browsing => {\n                match key.code {\n                    KeyCode::Char('q') | KeyCode::Esc => return Ok(true),\n                    KeyCode::Char('h') | KeyCode::F(1) => {\n                        self.app.set_state(AppState::Help);\n                    }\n                    KeyCode::Char('r') => {\n                        self.start_loading_venvs()?;\n                    }\n                    KeyCode::Up => {\n                        self.app.select_previous();\n                    }\n                    KeyCode::Down => {\n                        self.app.select_next();\n                    }\n                    KeyCode::Home => {\n                        self.app.select_first();\n                    }\n                    KeyCode::End => {\n                        self.app.select_last();\n                    }\n                    KeyCode::PageUp => {\n                        self.app.page_up();\n                    }\n                    KeyCode::PageDown => {\n                        self.app.page_down();\n                    }\n                    KeyCode::Enter | KeyCode::Char(' ') => {\n                        self.app.toggle_selected();\n                    }\n                    KeyCode::Char('a') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.select_all();\n                        }\n                    }\n                    KeyCode::Char('d') => {\n                        if key.modifiers.contains(KeyModifiers::CONTROL) {\n                            self.app.deselect_all();\n                        }\n                    }\n                    KeyCode::Delete | KeyCode::Char('x') => {\n                        if self.app.has_selected_items() {\n                            self.app.set_state(AppState::ConfirmingDeletion);\n                        }\n                    }\n                    KeyCode::Char('s') => {\n                        self.app.cycle_sort();\n                        self.app.set_status(format!(\"Sorted by {}\", self.app.sort_by().display_name()));\n                    }\n                    KeyCode::Char('o') => {\n                        self.app.open_folder()?;\n                    }\n                    _ => {}\n                }\n            }\n            AppState::ConfirmingDeletion => {\n                match key.code {\n                    KeyCode::Char('y') | KeyCode::Enter => {\n                        self.start_deletion()?;\n                    }\n                    KeyCode::Char('n') | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    _ => {}\n                }\n            }\n            AppState::Deleting => {\n                // Only allow force quit during deletion\n                if key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL) {\n                    return Ok(true);\n                }\n            }\n            AppState::Error => {\n                match key.code {\n                    KeyCode::Enter | KeyCode::Esc => {\n                        self.app.set_state(AppState::Browsing);\n                    }\n                    KeyCode::Char('q') => return Ok(true),\n                    _ => {}\n                }\n            }\n            AppState::Help => {\n                // Any key exits help\n                self.app.set_state(AppState::Browsing);\n            }\n            AppState::Quit => {\n                return Ok(true);\n            }\n        }\n\n        Ok(false)\n    }\n\n    /// Handle tick events (periodic updates)\n    fn handle_tick(&mut self) -> Result<()> {\n        // Update any animations or periodic state changes\n        self.app.tick();\n        Ok(())\n    }\n\n    /// Start the deletion process for selected .venv directories\n    fn start_deletion(&mut self) -> Result<()> {\n        self.app.set_state(AppState::Deleting);\n        self.app.set_status(\"Deleting selected directories...\".to_string());\n\n        let selected_venvs = self.app.get_selected_venvs();\n        let mut results = Vec::new();\n\n        for venv in &selected_venvs {\n            let result = self.cleaner.delete_venv_directory(venv);\n            results.push((venv.clone(), result));\n        }\n\n        // Calculate stats before moving results\n        let deleted_count = results.iter().filter(|(_, r)| r.is_ok()).count();\n        let failed_count = results.len() - deleted_count;\n\n        self.app.handle_deletion_results(results);\n\n        // Set a brief completion message\n\n        if failed_count == 0 {\n            self.app.set_status(format!(\"Successfully deleted {} directories. Refreshing list...\", deleted_count));\n        } else {\n            self.app.set_status(format!(\"Deleted {} directories, {} failed. Refreshing list...\", deleted_count, failed_count));\n        }\n\n        // Trigger a refresh by going back to loading state\n        self.app.set_state(AppState::Loading);\n        self.start_loading_venvs()?;\n\n        Ok(())\n    }\n\n    /// Draw the user interface\n    fn draw_ui(&self, f: &mut ratatui::Frame) {\n        let size = f.size();\n\n        match self.app.state() {\n            AppState::Loading => {\n                ui::draw_loading_screen(f, size, &self.app);\n            }\n            AppState::Browsing => {\n                ui::draw_main_screen(f, size, &self.app);\n            }\n            AppState::ConfirmingDeletion => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_confirmation_dialog(f, size, &self.app);\n            }\n            AppState::Deleting => {\n                ui::draw_main_screen(f, size, &self.app);\n                ui::draw_deletion_progress(f, size, &self.app);\n            }\n            AppState::Error => {\n                ui::draw_error_screen(f, size, &self.app);\n            }\n            AppState::Help => {\n                ui::draw_help_screen(f, size);\n            }\n            AppState::Quit => {\n                // Should not reach here\n            }\n        }\n    }\n\n    /// Clean up terminal state before exiting\n    fn cleanup(&mut self) -> Result<()> {\n        terminal::disable_raw_mode()?;\n        execute!(\n            self.terminal.backend_mut(),\n            LeaveAlternateScreen,\n            DisableMouseCapture\n        )?;\n        self.terminal.show_cursor()?;\n        Ok(())\n    }\n}\n\nimpl Drop for TuiMode {\n    fn drop(&mut self) {\n        // Ensure cleanup happens even if there's a panic\n        let _ = self.cleanup();\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n    use tempfile::TempDir;\n\n    #[test]\n    fn test_sort_by_cycle() {\n        assert_eq!(SortBy::Path.next(), SortBy::Size);\n        assert_eq!(SortBy::Size.next(), SortBy::Created);\n        assert_eq!(SortBy::Created.next(), SortBy::LastModified);\n        assert_eq!(SortBy::LastModified.next(), SortBy::Path);\n    }\n\n    #[test]\n    fn test_sort_by_previous() {\n        assert_eq!(SortBy::Path.previous(), SortBy::LastModified);\n        assert_eq!(SortBy::Size.previous(), SortBy::Path);\n        assert_eq!(SortBy::Created.previous(), SortBy::Size);\n        assert_eq!(SortBy::LastModified.previous(), SortBy::Created);\n    }\n\n    #[test]\n    fn test_sort_by_display_names() {\n        assert_eq!(SortBy::Path.display_name(), \"Path\");\n        assert_eq!(SortBy::Size.display_name(), \"Size\");\n        assert_eq!(SortBy::Created.display_name(), \"Created\");\n        assert_eq!(SortBy::LastModified.display_name(), \"Last Used\");\n    }\n}\n",
+  "raw_output": {
+    "raw_edits": "<edits>\n\n<old_text>\n        // In a real implementation, this would spawn a background task\n        // For now, we'll do it synchronously but show the loading state\n        let venvs = self.cleaner.find_venv_directories();\n\n        match venvs {\n            Ok(venvs) => {\n                // Show completion message briefly\n                self.app.set_status(format!(\"✅ Scan complete! Processing {} directories...\", venvs.len()));\n                self.terminal.draw(|f| {\n                    let size = f.size();\n                    ui::draw_loading_screen(f, size, &self.app);\n                })?;\n\n                self.app.set_venvs(venvs);\n                self.app.set_state(AppState::Browsing);\n                let count = self.app.venvs().len();\n                if count == 0 {\n                    self.app.set_status(\"No .venv directories found. Press 'r' to refresh or 'q' to quit.\".to_string());\n                } else {\n                    self.app.set_status(format!(\"Found {} .venv directories. Use arrow keys to navigate, Space to select.\", count));\n                }\n            }\n            Err(e) => {\n                self.app.set_error(e.to_string());\n                self.app.set_state(AppState::Error);\n            }\n        }\n</old_text>\n<new_text>\n        // In a real implementation, this would spawn a background task\n        // For now, we'll do it synchronously but show the loading state\n        \n        // Add a brief delay to show the scanning message\n        std::thread::sleep(std::time::Duration::from_millis(200));\n        \n        let venvs = self.cleaner.find_venv_directories();\n\n        match venvs {\n            Ok(venvs) => {\n                // Show completion message briefly\n                self.app.set_status(format!(\"✅ Scan complete! Processing {} directories...\", venvs.len()));\n                self.terminal.draw(|f| {\n                    let size = f.size();\n                    ui::draw_loading_screen(f, size, &self.app);\n                })?;\n\n                // Brief delay to show completion message\n                std::thread::sleep(std::time::Duration::from_millis(300));\n\n                self.app.set_venvs(venvs);\n                self.app.set_state(AppState::Browsing);\n                let count = self.app.venvs().len();\n                if count == 0 {\n                    self.app.set_status(\"No .venv directories found. Press 'r' to refresh or 'q' to quit.\".to_string());\n                } else {\n                    self.app.set_status(format!(\"Found {} .venv directories. Use arrow keys to navigate, Space to select.\", count));\n                }\n            }\n            Err(e) => {\n                self.app.set_error(e.to_string());\n                self.app.set_state(AppState::Error);\n            }\n        }\n</new_text>\n\n</edits>",
+    "parser_metrics": {
+      "tags": 2,
+      "mismatched_tags": 0
+    }
+  }
+}
+```
+
+## Agent
+
+I see the README.md has been updated. Let me also improve the loading screen to show helpful information while scanning, including keyboard shortcuts that work during loading:
+
+**Use Tool: edit_file (toolu_019kvUGcqv7dDMnFUznAZ2JS)**
+```json
+{
+  "display_description": "Add helpful information and keyboard shortcuts to TUI loading screen",
+  "mode": "edit",
+  "path": "VenvCleaner/src/tui/ui.rs"
+}
+```
+
+**Tool Results: toolu_019kvUGcqv7dDMnFUznAZ2JS**
+
+Edited VenvCleaner/src/tui/ui.rs:
+
+```diff
+@@ -452,9 +452,28 @@
+                 .title("Status")
+         );
+
++    // Help text during loading
++    let help_lines = vec![
++        Line::from(vec![
++            Span::styled("Please wait while scanning directories...", Style::default().fg(Colors::MUTED)),
++        ]),
++        Line::from(""),
++        Line::from(vec![
++            Span::styled("Press ", Style::default().fg(Colors::MUTED)),
++            Span::styled("q", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),
++            Span::styled(" or ", Style::default().fg(Colors::MUTED)),
++            Span::styled("Esc", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),
++            Span::styled(" to quit", Style::default().fg(Colors::MUTED)),
++        ]),
++    ];
++
++    let help_paragraph = Paragraph::new(help_lines)
++        .alignment(Alignment::Center);
++
+     f.render_widget(title_paragraph, chunks[1]);
+     f.render_widget(loading_paragraph, chunks[2]);
+     f.render_widget(status_paragraph, chunks[3]);
++    f.render_widget(help_paragraph, chunks[4]);
+ }
+
+ /// Draw the confirmation dialog
+
+```
+
+
+Debug Output:
+
+```json
+{
+  "original_path": "src/tui/ui.rs",
+  "new_text": "//! UI rendering for the TUI mode\n//!\n//! This module handles all the UI rendering for the TUI interface, including\n//! the main screen, dialogs, progress bars, and help screens.\n\nuse ratatui::{\n    layout::{Alignment, Constraint, Direction, Layout, Rect},\n    style::{Color, Modifier, Style},\n    text::{Line, Span},\n    widgets::{\n        Block, Borders, Clear, Gauge, List, ListItem, ListState, Paragraph,\n        Wrap, BorderType\n    },\n};\n\nuse super::{TuiApp, SortBy, AppState};\n\n/// Colors used throughout the TUI\npub struct Colors;\n\nimpl Colors {\n    pub const PRIMARY: Color = Color::Cyan;\n    pub const SECONDARY: Color = Color::Yellow;\n    pub const SUCCESS: Color = Color::Green;\n    pub const WARNING: Color = Color::Yellow;\n    pub const ERROR: Color = Color::Red;\n    pub const MUTED: Color = Color::Gray;\n    pub const SELECTED: Color = Color::Blue;\n    pub const HIGHLIGHT: Color = Color::Magenta;\n}\n\n/// Draw the main browsing screen\npub fn draw_main_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Length(3),  // Header\n            Constraint::Min(0),     // Main content\n            Constraint::Length(3),  // Footer\n        ])\n        .split(area);\n\n    // Header\n    draw_header(f, chunks[0], app);\n\n    // Main content area\n    let main_chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(70), // File list\n            Constraint::Percentage(30), // Details panel\n        ])\n        .split(chunks[1]);\n\n    // File list\n    draw_venv_list(f, main_chunks[0], app);\n\n    // Details panel\n    draw_details_panel(f, main_chunks[1], app);\n\n    // Footer\n    draw_footer(f, chunks[2], app);\n}\n\n/// Draw the header section\nfn draw_header(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let search_mode = if app.is_recursive() { \" (Recursive)\" } else { \" (Current Dir)\" };\n    let title = format!(\"VenvCleaner - {}{}\", app.current_directory().display(), search_mode);\n    let sort_info = format!(\"Sort: {} {}\",\n        app.sort_by().display_name(),\n        if app.sort_by() == SortBy::Size { \"↓\" } else { \"↑\" }\n    );\n\n    let header_chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(70),\n            Constraint::Percentage(30),\n        ])\n        .split(area);\n\n    let title_block = Block::default()\n        .borders(Borders::ALL)\n        .border_style(Style::default().fg(Colors::PRIMARY))\n        .title(title);\n\n    let title_paragraph = Paragraph::new(\"\")\n        .block(title_block);\n\n    let sort_block = Block::default()\n        .borders(Borders::ALL)\n        .border_style(Style::default().fg(Colors::SECONDARY))\n        .title(\"Sort\");\n\n    let sort_paragraph = Paragraph::new(sort_info)\n        .block(sort_block)\n        .alignment(Alignment::Center);\n\n    f.render_widget(title_paragraph, header_chunks[0]);\n    f.render_widget(sort_paragraph, header_chunks[1]);\n}\n\n/// Draw the .venv directory list\nfn draw_venv_list(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let venvs = app.venvs();\n    let selected_index = app.selected_index();\n    let selected_venvs = app.selected_venvs();\n\n    // Get visible range without mutating app\n    let list_height = area.height.saturating_sub(2); // Account for borders\n    let visible_items = list_height as usize;\n\n    let scroll_offset = app.scroll_offset();\n    let start = scroll_offset;\n    let end = (start + visible_items).min(venvs.len());\n    let visible_venvs = &venvs[start..end];\n\n    let items: Vec<ListItem> = visible_venvs\n        .iter()\n        .enumerate()\n        .map(|(i, venv)| {\n            let actual_index = start + i;\n            let is_selected = actual_index == selected_index;\n            let is_marked = selected_venvs.contains(&actual_index);\n\n            let mut spans = vec![];\n\n            // Selection indicator\n            if is_marked {\n                spans.push(Span::styled(\"✓ \", Style::default().fg(Colors::SUCCESS)));\n            } else {\n                spans.push(Span::raw(\"  \"));\n            }\n\n            // Age indicator\n            if venv.is_recently_used() {\n                spans.push(Span::styled(\"🟢 \", Style::default()));\n            } else if venv.is_old() {\n                spans.push(Span::styled(\"🔴 \", Style::default()));\n            } else {\n                spans.push(Span::styled(\"🟡 \", Style::default()));\n            }\n\n            // Path\n            let path_text = format_path_for_display(&venv.location(), 40);\n            spans.push(Span::styled(\n                format!(\"{:<40}\", path_text),\n                if is_selected {\n                    Style::default().fg(Colors::HIGHLIGHT).add_modifier(Modifier::BOLD)\n                } else {\n                    Style::default()\n                }\n            ));\n\n            // Size\n            let size_text = venv.size_formatted();\n            let size_color = if venv.size_bytes() > 1024 * 1024 * 1024 {\n                Colors::ERROR\n            } else if venv.size_bytes() > 100 * 1024 * 1024 {\n                Colors::WARNING\n            } else {\n                Colors::MUTED\n            };\n\n            spans.push(Span::styled(\n                format!(\"{:>12}\", size_text),\n                Style::default().fg(size_color)\n            ));\n\n            // Last used\n            let age_text = format!(\"{}d\", venv.age_in_days());\n            spans.push(Span::styled(\n                format!(\"{:>6}\", age_text),\n                Style::default().fg(Colors::MUTED)\n            ));\n\n            ListItem::new(Line::from(spans))\n        })\n        .collect();\n\n    let list_title = format!(\".venv Directories ({}/{})\",\n        venvs.len(),\n        if selected_venvs.is_empty() {\n            \"none selected\".to_string()\n        } else {\n            format!(\"{} selected\", selected_venvs.len())\n        }\n    );\n\n    let list = List::new(items)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(list_title)\n        )\n        .highlight_style(\n            Style::default()\n                .bg(Colors::SELECTED)\n                .add_modifier(Modifier::BOLD)\n        );\n\n    // Calculate the highlight index relative to the visible range\n    let highlight_index = if selected_index >= start && selected_index < end {\n        Some(selected_index - start)\n    } else {\n        None\n    };\n\n    let mut list_state = ListState::default();\n    if let Some(index) = highlight_index {\n        list_state.select(Some(index));\n    }\n\n    f.render_stateful_widget(list, area, &mut list_state);\n}\n\n/// Draw the details panel\nfn draw_details_panel(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(60), // Selected item details\n            Constraint::Percentage(40), // Summary statistics\n        ])\n        .split(area);\n\n    // Selected item details\n    draw_selected_details(f, chunks[0], app);\n\n    // Summary statistics\n    draw_summary_stats(f, chunks[1], app);\n}\n\n/// Draw details for the selected .venv directory\nfn draw_selected_details(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let mut text = vec![];\n\n    if let Some(venv) = app.selected_venv() {\n        text.push(Line::from(vec![\n            Span::styled(\"Path: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.path().display().to_string()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.size_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Created: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.created_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Last Used: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.last_modified_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Age: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} days\", venv.age_in_days())),\n        ]));\n\n        text.push(Line::from(\"\"));\n\n        // Status indicators\n        if venv.is_recently_used() {\n            text.push(Line::from(vec![\n                Span::styled(\"🟢 \", Style::default()),\n                Span::styled(\"Recently used\", Style::default().fg(Colors::SUCCESS)),\n            ]));\n        } else if venv.is_old() {\n            text.push(Line::from(vec![\n                Span::styled(\"🔴 \", Style::default()),\n                Span::styled(\"Old (>90 days)\", Style::default().fg(Colors::ERROR)),\n            ]));\n        } else {\n            text.push(Line::from(vec![\n                Span::styled(\"🟡 \", Style::default()),\n                Span::styled(\"Moderately used\", Style::default().fg(Colors::WARNING)),\n            ]));\n        }\n\n        if app.is_item_selected(app.selected_index()) {\n            text.push(Line::from(vec![\n                Span::styled(\"✓ \", Style::default().fg(Colors::SUCCESS)),\n                Span::styled(\"Selected for deletion\", Style::default().fg(Colors::SUCCESS)),\n            ]));\n        }\n    } else {\n        text.push(Line::from(\"No .venv directory selected\"));\n    }\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::SECONDARY))\n                .title(\"Details\")\n        )\n        .wrap(Wrap { trim: true });\n\n    f.render_widget(paragraph, area);\n}\n\n/// Draw summary statistics\nfn draw_summary_stats(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let stats = app.get_summary_stats();\n\n    let text = vec![\n        Line::from(vec![\n            Span::styled(\"Total: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} directories\", stats.total_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Selected: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} directories\", stats.selected_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Total Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format_size(stats.total_size)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Selected Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format_size(stats.selected_size)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"🟢 Recent: \", Style::default().fg(Colors::SUCCESS)),\n            Span::raw(format!(\"{}\", stats.recent_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"🔴 Old: \", Style::default().fg(Colors::ERROR)),\n            Span::raw(format!(\"{}\", stats.old_count)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::SECONDARY))\n                .title(\"Summary\")\n        );\n\n    f.render_widget(paragraph, area);\n}\n\n/// Draw the footer with status and shortcuts\nfn draw_footer(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(60), // Status\n            Constraint::Percentage(40), // Shortcuts\n        ])\n        .split(area);\n\n    // Status\n    let status_text = app.status();\n    let status_paragraph = Paragraph::new(status_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Status\")\n        );\n\n    // Shortcuts - show context-sensitive help\n    let shortcuts_text = match app.state() {\n        AppState::Browsing => {\n            if app.has_selected_items() {\n                \"h:Help r:Refresh Space:Toggle x:Delete s:Sort o:Open Ctrl+A:All Ctrl+D:None q:Quit\"\n            } else {\n                \"h:Help r:Refresh Space:Select s:Sort o:Open Ctrl+A:Select All q:Quit\"\n            }\n        }\n        _ => \"h:Help r:Refresh Space:Select x:Delete s:Sort o:Open q:Quit\"\n    };\n    let shortcuts_paragraph = Paragraph::new(shortcuts_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Shortcuts\")\n        );\n\n    f.render_widget(status_paragraph, chunks[0]);\n    f.render_widget(shortcuts_paragraph, chunks[1]);\n}\n\n/// Draw the loading screen\npub fn draw_loading_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(20),\n            Constraint::Length(8),\n            Constraint::Percentage(20),\n            Constraint::Length(5),\n            Constraint::Percentage(50),\n        ])\n        .split(area);\n\n    // Title\n    let title_text = vec![\n        Line::from(vec![\n            Span::styled(\"VenvCleaner TUI\", Style::default().fg(Colors::PRIMARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"🔍 Scanning for .venv directories...\", Style::default().fg(Colors::SECONDARY)),\n        ]),\n    ];\n\n    let title_paragraph = Paragraph::new(title_text)\n        .alignment(Alignment::Center)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Initializing\")\n        );\n\n    // Loading animation\n    let loading_text = format!(\"Loading{}\", \".\".repeat(app.loading_dots()));\n    let loading_paragraph = Paragraph::new(loading_text)\n        .style(Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD))\n        .alignment(Alignment::Center);\n\n    // Status and directory info\n    let status_lines = vec![\n        Line::from(vec![\n            Span::styled(\"Directory: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(app.current_directory().display().to_string()),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Mode: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(if app.is_recursive() { \"Recursive search\" } else { \"Current directory only\" }),\n        ]),\n        Line::from(\"\"),\n        Line::from(app.status()),\n    ];\n\n    let status_paragraph = Paragraph::new(status_lines)\n        .alignment(Alignment::Center)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Status\")\n        );\n\n    // Help text during loading\n    let help_lines = vec![\n        Line::from(vec![\n            Span::styled(\"Please wait while scanning directories...\", Style::default().fg(Colors::MUTED)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press \", Style::default().fg(Colors::MUTED)),\n            Span::styled(\"q\", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n            Span::styled(\" or \", Style::default().fg(Colors::MUTED)),\n            Span::styled(\"Esc\", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n            Span::styled(\" to quit\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let help_paragraph = Paragraph::new(help_lines)\n        .alignment(Alignment::Center);\n\n    f.render_widget(title_paragraph, chunks[1]);\n    f.render_widget(loading_paragraph, chunks[2]);\n    f.render_widget(status_paragraph, chunks[3]);\n    f.render_widget(help_paragraph, chunks[4]);\n}\n\n/// Draw the confirmation dialog\npub fn draw_confirmation_dialog(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let selected_count = app.selected_venvs().len();\n    let selected_venvs = app.get_selected_venvs();\n    let total_size: u64 = selected_venvs.iter().map(|v| v.size_bytes()).sum();\n\n    // Calculate dialog size\n    let dialog_width = 60;\n    let dialog_height = 12;\n    let x = (area.width.saturating_sub(dialog_width)) / 2;\n    let y = (area.height.saturating_sub(dialog_height)) / 2;\n    let dialog_area = Rect::new(x, y, dialog_width, dialog_height);\n\n    // Clear the area behind the dialog\n    f.render_widget(Clear, dialog_area);\n\n    let text = vec![\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"⚠️  Confirm Deletion\", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"You are about to permanently delete \"),\n            Span::styled(format!(\"{}\", selected_count), Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n            Span::raw(\" .venv directories.\"),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"Total size to be freed: \"),\n            Span::styled(format_size(total_size), Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"⚠️  This action cannot be undone!\", Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"The list will automatically refresh after deletion.\"),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press 'y' to confirm deletion or 'n'/Esc to cancel\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::ERROR))\n                .border_type(BorderType::Double)\n                .title(\"Confirm Deletion\")\n        )\n        .alignment(Alignment::Center);\n\n    f.render_widget(paragraph, dialog_area);\n}\n\n/// Draw the deletion progress dialog\npub fn draw_deletion_progress(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let progress = app.deletion_progress();\n\n    // Calculate dialog size\n    let dialog_width = 50;\n    let dialog_height = 8;\n    let x = (area.width.saturating_sub(dialog_width)) / 2;\n    let y = (area.height.saturating_sub(dialog_height)) / 2;\n    let dialog_area = Rect::new(x, y, dialog_width, dialog_height);\n\n    // Clear the area behind the dialog\n    f.render_widget(Clear, dialog_area);\n\n    let progress_ratio = if progress.total > 0 {\n        progress.completed as f64 / progress.total as f64\n    } else {\n        0.0\n    };\n\n    let gauge = Gauge::default()\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Deleting...\")\n        )\n        .gauge_style(Style::default().fg(Colors::SUCCESS))\n        .ratio(progress_ratio)\n        .label(format!(\"{}/{}\", progress.completed, progress.total));\n\n    f.render_widget(gauge, dialog_area);\n}\n\n/// Draw the error screen\npub fn draw_error_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(30),\n            Constraint::Length(10),\n            Constraint::Percentage(60),\n        ])\n        .split(area);\n\n    let error_text = vec![\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"❌ Error\", Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(app.error_message()),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press Enter to continue or 'q' to quit\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(error_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::ERROR))\n                .title(\"Error\")\n        )\n        .alignment(Alignment::Center);\n\n    f.render_widget(paragraph, chunks[1]);\n}\n\n/// Draw the help screen\npub fn draw_help_screen(f: &mut ratatui::Frame, area: Rect) {\n    let help_text = vec![\n        Line::from(vec![\n            Span::styled(\"VenvCleaner TUI Help\", Style::default().fg(Colors::PRIMARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Navigation:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  ↑/↓       - Move selection up/down\"),\n        Line::from(\"  Home/End  - Go to first/last item\"),\n        Line::from(\"  PgUp/PgDn - Page up/down\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Selection:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  Space/Enter - Toggle selection\"),\n        Line::from(\"  Ctrl+A      - Select all\"),\n        Line::from(\"  Ctrl+D      - Deselect all\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Actions:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  x/Del    - Delete selected items\"),\n        Line::from(\"  s        - Cycle sort order\"),\n        Line::from(\"  o        - Open folder in file manager\"),\n        Line::from(\"  r        - Refresh list\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Other:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  h/F1     - Show this help\"),\n        Line::from(\"  q/Esc    - Quit application\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Status Icons:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  🟢 - Recently used (<30 days)\"),\n        Line::from(\"  🟡 - Moderately used (30-90 days)\"),\n        Line::from(\"  🔴 - Old (>90 days)\"),\n        Line::from(\"  ✓  - Selected for deletion\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press any key to return...\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(help_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Help\")\n        )\n        .alignment(Alignment::Left)\n        .wrap(Wrap { trim: true });\n\n    f.render_widget(paragraph, area);\n}\n\n/// Format a file path for display, truncating if necessary\nfn format_path_for_display(path: &str, max_length: usize) -> String {\n    if path.len() <= max_length {\n        path.to_string()\n    } else {\n        format!(\"...{}\", &path[path.len().saturating_sub(max_length - 3)..])\n    }\n}\n\n/// Format a size in bytes to a human-readable string\nfn format_size(bytes: u64) -> String {\n    const KB: u64 = 1024;\n    const MB: u64 = KB * 1024;\n    const GB: u64 = MB * 1024;\n\n    if bytes >= GB {\n        format!(\"{:.2} GB\", bytes as f64 / GB as f64)\n    } else if bytes >= MB {\n        format!(\"{:.2} MB\", bytes as f64 / MB as f64)\n    } else if bytes >= KB {\n        format!(\"{:.2} KB\", bytes as f64 / KB as f64)\n    } else {\n        format!(\"{} bytes\", bytes)\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn test_format_path_for_display() {\n        assert_eq!(format_path_for_display(\"short\", 10), \"short\");\n        assert_eq!(format_path_for_display(\"very/long/path/here\", 10), \"...th/here\");\n    }\n\n    #[test]\n    fn test_format_size() {\n        assert_eq!(format_size(512), \"512 bytes\");\n        assert_eq!(format_size(1536), \"1.50 KB\");\n        assert_eq!(format_size(2 * 1024 * 1024), \"2.00 MB\");\n        assert_eq!(format_size(1024 * 1024 * 1024), \"1.00 GB\");\n    }\n}\n",
+  "old_text": "//! UI rendering for the TUI mode\n//!\n//! This module handles all the UI rendering for the TUI interface, including\n//! the main screen, dialogs, progress bars, and help screens.\n\nuse ratatui::{\n    layout::{Alignment, Constraint, Direction, Layout, Rect},\n    style::{Color, Modifier, Style},\n    text::{Line, Span},\n    widgets::{\n        Block, Borders, Clear, Gauge, List, ListItem, ListState, Paragraph,\n        Wrap, BorderType\n    },\n};\n\nuse super::{TuiApp, SortBy, AppState};\n\n/// Colors used throughout the TUI\npub struct Colors;\n\nimpl Colors {\n    pub const PRIMARY: Color = Color::Cyan;\n    pub const SECONDARY: Color = Color::Yellow;\n    pub const SUCCESS: Color = Color::Green;\n    pub const WARNING: Color = Color::Yellow;\n    pub const ERROR: Color = Color::Red;\n    pub const MUTED: Color = Color::Gray;\n    pub const SELECTED: Color = Color::Blue;\n    pub const HIGHLIGHT: Color = Color::Magenta;\n}\n\n/// Draw the main browsing screen\npub fn draw_main_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Length(3),  // Header\n            Constraint::Min(0),     // Main content\n            Constraint::Length(3),  // Footer\n        ])\n        .split(area);\n\n    // Header\n    draw_header(f, chunks[0], app);\n\n    // Main content area\n    let main_chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(70), // File list\n            Constraint::Percentage(30), // Details panel\n        ])\n        .split(chunks[1]);\n\n    // File list\n    draw_venv_list(f, main_chunks[0], app);\n\n    // Details panel\n    draw_details_panel(f, main_chunks[1], app);\n\n    // Footer\n    draw_footer(f, chunks[2], app);\n}\n\n/// Draw the header section\nfn draw_header(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let search_mode = if app.is_recursive() { \" (Recursive)\" } else { \" (Current Dir)\" };\n    let title = format!(\"VenvCleaner - {}{}\", app.current_directory().display(), search_mode);\n    let sort_info = format!(\"Sort: {} {}\",\n        app.sort_by().display_name(),\n        if app.sort_by() == SortBy::Size { \"↓\" } else { \"↑\" }\n    );\n\n    let header_chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(70),\n            Constraint::Percentage(30),\n        ])\n        .split(area);\n\n    let title_block = Block::default()\n        .borders(Borders::ALL)\n        .border_style(Style::default().fg(Colors::PRIMARY))\n        .title(title);\n\n    let title_paragraph = Paragraph::new(\"\")\n        .block(title_block);\n\n    let sort_block = Block::default()\n        .borders(Borders::ALL)\n        .border_style(Style::default().fg(Colors::SECONDARY))\n        .title(\"Sort\");\n\n    let sort_paragraph = Paragraph::new(sort_info)\n        .block(sort_block)\n        .alignment(Alignment::Center);\n\n    f.render_widget(title_paragraph, header_chunks[0]);\n    f.render_widget(sort_paragraph, header_chunks[1]);\n}\n\n/// Draw the .venv directory list\nfn draw_venv_list(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let venvs = app.venvs();\n    let selected_index = app.selected_index();\n    let selected_venvs = app.selected_venvs();\n\n    // Get visible range without mutating app\n    let list_height = area.height.saturating_sub(2); // Account for borders\n    let visible_items = list_height as usize;\n\n    let scroll_offset = app.scroll_offset();\n    let start = scroll_offset;\n    let end = (start + visible_items).min(venvs.len());\n    let visible_venvs = &venvs[start..end];\n\n    let items: Vec<ListItem> = visible_venvs\n        .iter()\n        .enumerate()\n        .map(|(i, venv)| {\n            let actual_index = start + i;\n            let is_selected = actual_index == selected_index;\n            let is_marked = selected_venvs.contains(&actual_index);\n\n            let mut spans = vec![];\n\n            // Selection indicator\n            if is_marked {\n                spans.push(Span::styled(\"✓ \", Style::default().fg(Colors::SUCCESS)));\n            } else {\n                spans.push(Span::raw(\"  \"));\n            }\n\n            // Age indicator\n            if venv.is_recently_used() {\n                spans.push(Span::styled(\"🟢 \", Style::default()));\n            } else if venv.is_old() {\n                spans.push(Span::styled(\"🔴 \", Style::default()));\n            } else {\n                spans.push(Span::styled(\"🟡 \", Style::default()));\n            }\n\n            // Path\n            let path_text = format_path_for_display(&venv.location(), 40);\n            spans.push(Span::styled(\n                format!(\"{:<40}\", path_text),\n                if is_selected {\n                    Style::default().fg(Colors::HIGHLIGHT).add_modifier(Modifier::BOLD)\n                } else {\n                    Style::default()\n                }\n            ));\n\n            // Size\n            let size_text = venv.size_formatted();\n            let size_color = if venv.size_bytes() > 1024 * 1024 * 1024 {\n                Colors::ERROR\n            } else if venv.size_bytes() > 100 * 1024 * 1024 {\n                Colors::WARNING\n            } else {\n                Colors::MUTED\n            };\n\n            spans.push(Span::styled(\n                format!(\"{:>12}\", size_text),\n                Style::default().fg(size_color)\n            ));\n\n            // Last used\n            let age_text = format!(\"{}d\", venv.age_in_days());\n            spans.push(Span::styled(\n                format!(\"{:>6}\", age_text),\n                Style::default().fg(Colors::MUTED)\n            ));\n\n            ListItem::new(Line::from(spans))\n        })\n        .collect();\n\n    let list_title = format!(\".venv Directories ({}/{})\",\n        venvs.len(),\n        if selected_venvs.is_empty() {\n            \"none selected\".to_string()\n        } else {\n            format!(\"{} selected\", selected_venvs.len())\n        }\n    );\n\n    let list = List::new(items)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(list_title)\n        )\n        .highlight_style(\n            Style::default()\n                .bg(Colors::SELECTED)\n                .add_modifier(Modifier::BOLD)\n        );\n\n    // Calculate the highlight index relative to the visible range\n    let highlight_index = if selected_index >= start && selected_index < end {\n        Some(selected_index - start)\n    } else {\n        None\n    };\n\n    let mut list_state = ListState::default();\n    if let Some(index) = highlight_index {\n        list_state.select(Some(index));\n    }\n\n    f.render_stateful_widget(list, area, &mut list_state);\n}\n\n/// Draw the details panel\nfn draw_details_panel(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(60), // Selected item details\n            Constraint::Percentage(40), // Summary statistics\n        ])\n        .split(area);\n\n    // Selected item details\n    draw_selected_details(f, chunks[0], app);\n\n    // Summary statistics\n    draw_summary_stats(f, chunks[1], app);\n}\n\n/// Draw details for the selected .venv directory\nfn draw_selected_details(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let mut text = vec![];\n\n    if let Some(venv) = app.selected_venv() {\n        text.push(Line::from(vec![\n            Span::styled(\"Path: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.path().display().to_string()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.size_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Created: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.created_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Last Used: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(venv.last_modified_formatted()),\n        ]));\n\n        text.push(Line::from(vec![\n            Span::styled(\"Age: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} days\", venv.age_in_days())),\n        ]));\n\n        text.push(Line::from(\"\"));\n\n        // Status indicators\n        if venv.is_recently_used() {\n            text.push(Line::from(vec![\n                Span::styled(\"🟢 \", Style::default()),\n                Span::styled(\"Recently used\", Style::default().fg(Colors::SUCCESS)),\n            ]));\n        } else if venv.is_old() {\n            text.push(Line::from(vec![\n                Span::styled(\"🔴 \", Style::default()),\n                Span::styled(\"Old (>90 days)\", Style::default().fg(Colors::ERROR)),\n            ]));\n        } else {\n            text.push(Line::from(vec![\n                Span::styled(\"🟡 \", Style::default()),\n                Span::styled(\"Moderately used\", Style::default().fg(Colors::WARNING)),\n            ]));\n        }\n\n        if app.is_item_selected(app.selected_index()) {\n            text.push(Line::from(vec![\n                Span::styled(\"✓ \", Style::default().fg(Colors::SUCCESS)),\n                Span::styled(\"Selected for deletion\", Style::default().fg(Colors::SUCCESS)),\n            ]));\n        }\n    } else {\n        text.push(Line::from(\"No .venv directory selected\"));\n    }\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::SECONDARY))\n                .title(\"Details\")\n        )\n        .wrap(Wrap { trim: true });\n\n    f.render_widget(paragraph, area);\n}\n\n/// Draw summary statistics\nfn draw_summary_stats(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let stats = app.get_summary_stats();\n\n    let text = vec![\n        Line::from(vec![\n            Span::styled(\"Total: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} directories\", stats.total_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Selected: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format!(\"{} directories\", stats.selected_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Total Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format_size(stats.total_size)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Selected Size: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(format_size(stats.selected_size)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"🟢 Recent: \", Style::default().fg(Colors::SUCCESS)),\n            Span::raw(format!(\"{}\", stats.recent_count)),\n        ]),\n        Line::from(vec![\n            Span::styled(\"🔴 Old: \", Style::default().fg(Colors::ERROR)),\n            Span::raw(format!(\"{}\", stats.old_count)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::SECONDARY))\n                .title(\"Summary\")\n        );\n\n    f.render_widget(paragraph, area);\n}\n\n/// Draw the footer with status and shortcuts\nfn draw_footer(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Horizontal)\n        .constraints([\n            Constraint::Percentage(60), // Status\n            Constraint::Percentage(40), // Shortcuts\n        ])\n        .split(area);\n\n    // Status\n    let status_text = app.status();\n    let status_paragraph = Paragraph::new(status_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Status\")\n        );\n\n    // Shortcuts - show context-sensitive help\n    let shortcuts_text = match app.state() {\n        AppState::Browsing => {\n            if app.has_selected_items() {\n                \"h:Help r:Refresh Space:Toggle x:Delete s:Sort o:Open Ctrl+A:All Ctrl+D:None q:Quit\"\n            } else {\n                \"h:Help r:Refresh Space:Select s:Sort o:Open Ctrl+A:Select All q:Quit\"\n            }\n        }\n        _ => \"h:Help r:Refresh Space:Select x:Delete s:Sort o:Open q:Quit\"\n    };\n    let shortcuts_paragraph = Paragraph::new(shortcuts_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Shortcuts\")\n        );\n\n    f.render_widget(status_paragraph, chunks[0]);\n    f.render_widget(shortcuts_paragraph, chunks[1]);\n}\n\n/// Draw the loading screen\npub fn draw_loading_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(20),\n            Constraint::Length(8),\n            Constraint::Percentage(20),\n            Constraint::Length(5),\n            Constraint::Percentage(50),\n        ])\n        .split(area);\n\n    // Title\n    let title_text = vec![\n        Line::from(vec![\n            Span::styled(\"VenvCleaner TUI\", Style::default().fg(Colors::PRIMARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"🔍 Scanning for .venv directories...\", Style::default().fg(Colors::SECONDARY)),\n        ]),\n    ];\n\n    let title_paragraph = Paragraph::new(title_text)\n        .alignment(Alignment::Center)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Initializing\")\n        );\n\n    // Loading animation\n    let loading_text = format!(\"Loading{}\", \".\".repeat(app.loading_dots()));\n    let loading_paragraph = Paragraph::new(loading_text)\n        .style(Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD))\n        .alignment(Alignment::Center);\n\n    // Status and directory info\n    let status_lines = vec![\n        Line::from(vec![\n            Span::styled(\"Directory: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(app.current_directory().display().to_string()),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Mode: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(if app.is_recursive() { \"Recursive search\" } else { \"Current directory only\" }),\n        ]),\n        Line::from(\"\"),\n        Line::from(app.status()),\n    ];\n\n    let status_paragraph = Paragraph::new(status_lines)\n        .alignment(Alignment::Center)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Status\")\n        );\n\n    f.render_widget(title_paragraph, chunks[1]);\n    f.render_widget(loading_paragraph, chunks[2]);\n    f.render_widget(status_paragraph, chunks[3]);\n}\n\n/// Draw the confirmation dialog\npub fn draw_confirmation_dialog(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let selected_count = app.selected_venvs().len();\n    let selected_venvs = app.get_selected_venvs();\n    let total_size: u64 = selected_venvs.iter().map(|v| v.size_bytes()).sum();\n\n    // Calculate dialog size\n    let dialog_width = 60;\n    let dialog_height = 12;\n    let x = (area.width.saturating_sub(dialog_width)) / 2;\n    let y = (area.height.saturating_sub(dialog_height)) / 2;\n    let dialog_area = Rect::new(x, y, dialog_width, dialog_height);\n\n    // Clear the area behind the dialog\n    f.render_widget(Clear, dialog_area);\n\n    let text = vec![\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"⚠️  Confirm Deletion\", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"You are about to permanently delete \"),\n            Span::styled(format!(\"{}\", selected_count), Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n            Span::raw(\" .venv directories.\"),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"Total size to be freed: \"),\n            Span::styled(format_size(total_size), Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"⚠️  This action cannot be undone!\", Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::raw(\"The list will automatically refresh after deletion.\"),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press 'y' to confirm deletion or 'n'/Esc to cancel\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::ERROR))\n                .border_type(BorderType::Double)\n                .title(\"Confirm Deletion\")\n        )\n        .alignment(Alignment::Center);\n\n    f.render_widget(paragraph, dialog_area);\n}\n\n/// Draw the deletion progress dialog\npub fn draw_deletion_progress(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let progress = app.deletion_progress();\n\n    // Calculate dialog size\n    let dialog_width = 50;\n    let dialog_height = 8;\n    let x = (area.width.saturating_sub(dialog_width)) / 2;\n    let y = (area.height.saturating_sub(dialog_height)) / 2;\n    let dialog_area = Rect::new(x, y, dialog_width, dialog_height);\n\n    // Clear the area behind the dialog\n    f.render_widget(Clear, dialog_area);\n\n    let progress_ratio = if progress.total > 0 {\n        progress.completed as f64 / progress.total as f64\n    } else {\n        0.0\n    };\n\n    let gauge = Gauge::default()\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Deleting...\")\n        )\n        .gauge_style(Style::default().fg(Colors::SUCCESS))\n        .ratio(progress_ratio)\n        .label(format!(\"{}/{}\", progress.completed, progress.total));\n\n    f.render_widget(gauge, dialog_area);\n}\n\n/// Draw the error screen\npub fn draw_error_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {\n    let chunks = Layout::default()\n        .direction(Direction::Vertical)\n        .constraints([\n            Constraint::Percentage(30),\n            Constraint::Length(10),\n            Constraint::Percentage(60),\n        ])\n        .split(area);\n\n    let error_text = vec![\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"❌ Error\", Style::default().fg(Colors::ERROR).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(app.error_message()),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press Enter to continue or 'q' to quit\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(error_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::ERROR))\n                .title(\"Error\")\n        )\n        .alignment(Alignment::Center);\n\n    f.render_widget(paragraph, chunks[1]);\n}\n\n/// Draw the help screen\npub fn draw_help_screen(f: &mut ratatui::Frame, area: Rect) {\n    let help_text = vec![\n        Line::from(vec![\n            Span::styled(\"VenvCleaner TUI Help\", Style::default().fg(Colors::PRIMARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Navigation:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  ↑/↓       - Move selection up/down\"),\n        Line::from(\"  Home/End  - Go to first/last item\"),\n        Line::from(\"  PgUp/PgDn - Page up/down\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Selection:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  Space/Enter - Toggle selection\"),\n        Line::from(\"  Ctrl+A      - Select all\"),\n        Line::from(\"  Ctrl+D      - Deselect all\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Actions:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  x/Del    - Delete selected items\"),\n        Line::from(\"  s        - Cycle sort order\"),\n        Line::from(\"  o        - Open folder in file manager\"),\n        Line::from(\"  r        - Refresh list\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Other:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  h/F1     - Show this help\"),\n        Line::from(\"  q/Esc    - Quit application\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Status Icons:\", Style::default().fg(Colors::SECONDARY).add_modifier(Modifier::BOLD)),\n        ]),\n        Line::from(\"  🟢 - Recently used (<30 days)\"),\n        Line::from(\"  🟡 - Moderately used (30-90 days)\"),\n        Line::from(\"  🔴 - Old (>90 days)\"),\n        Line::from(\"  ✓  - Selected for deletion\"),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press any key to return...\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let paragraph = Paragraph::new(help_text)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::PRIMARY))\n                .title(\"Help\")\n        )\n        .alignment(Alignment::Left)\n        .wrap(Wrap { trim: true });\n\n    f.render_widget(paragraph, area);\n}\n\n/// Format a file path for display, truncating if necessary\nfn format_path_for_display(path: &str, max_length: usize) -> String {\n    if path.len() <= max_length {\n        path.to_string()\n    } else {\n        format!(\"...{}\", &path[path.len().saturating_sub(max_length - 3)..])\n    }\n}\n\n/// Format a size in bytes to a human-readable string\nfn format_size(bytes: u64) -> String {\n    const KB: u64 = 1024;\n    const MB: u64 = KB * 1024;\n    const GB: u64 = MB * 1024;\n\n    if bytes >= GB {\n        format!(\"{:.2} GB\", bytes as f64 / GB as f64)\n    } else if bytes >= MB {\n        format!(\"{:.2} MB\", bytes as f64 / MB as f64)\n    } else if bytes >= KB {\n        format!(\"{:.2} KB\", bytes as f64 / KB as f64)\n    } else {\n        format!(\"{} bytes\", bytes)\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn test_format_path_for_display() {\n        assert_eq!(format_path_for_display(\"short\", 10), \"short\");\n        assert_eq!(format_path_for_display(\"very/long/path/here\", 10), \"...th/here\");\n    }\n\n    #[test]\n    fn test_format_size() {\n        assert_eq!(format_size(512), \"512 bytes\");\n        assert_eq!(format_size(1536), \"1.50 KB\");\n        assert_eq!(format_size(2 * 1024 * 1024), \"2.00 MB\");\n        assert_eq!(format_size(1024 * 1024 * 1024), \"1.00 GB\");\n    }\n}\n",
+  "raw_output": {
+    "raw_edits": "<edits>\n\n<old_text>\n    // Status and directory info\n    let status_lines = vec![\n        Line::from(vec![\n            Span::styled(\"Directory: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(app.current_directory().display().to_string()),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Mode: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(if app.is_recursive() { \"Recursive search\" } else { \"Current directory only\" }),\n        ]),\n        Line::from(\"\"),\n        Line::from(app.status()),\n    ];\n\n    let status_paragraph = Paragraph::new(status_lines)\n        .alignment(Alignment::Center)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Status\")\n        );\n\n    f.render_widget(title_paragraph, chunks[1]);\n    f.render_widget(loading_paragraph, chunks[2]);\n    f.render_widget(status_paragraph, chunks[3]);\n</old_text>\n<new_text>\n    // Status and directory info\n    let status_lines = vec![\n        Line::from(vec![\n            Span::styled(\"Directory: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(app.current_directory().display().to_string()),\n        ]),\n        Line::from(vec![\n            Span::styled(\"Mode: \", Style::default().fg(Colors::SECONDARY)),\n            Span::raw(if app.is_recursive() { \"Recursive search\" } else { \"Current directory only\" }),\n        ]),\n        Line::from(\"\"),\n        Line::from(app.status()),\n    ];\n\n    let status_paragraph = Paragraph::new(status_lines)\n        .alignment(Alignment::Center)\n        .block(\n            Block::default()\n                .borders(Borders::ALL)\n                .border_style(Style::default().fg(Colors::MUTED))\n                .title(\"Status\")\n        );\n\n    // Help text during loading\n    let help_lines = vec![\n        Line::from(vec![\n            Span::styled(\"Please wait while scanning directories...\", Style::default().fg(Colors::MUTED)),\n        ]),\n        Line::from(\"\"),\n        Line::from(vec![\n            Span::styled(\"Press \", Style::default().fg(Colors::MUTED)),\n            Span::styled(\"q\", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n            Span::styled(\" or \", Style::default().fg(Colors::MUTED)),\n            Span::styled(\"Esc\", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),\n            Span::styled(\" to quit\", Style::default().fg(Colors::MUTED)),\n        ]),\n    ];\n\n    let help_paragraph = Paragraph::new(help_lines)\n        .alignment(Alignment::Center);\n\n    f.render_widget(title_paragraph, chunks[1]);\n    f.render_widget(loading_paragraph, chunks[2]);\n    f.render_widget(status_paragraph, chunks[3]);\n    f.render_widget(help_paragraph, chunks[4]);\n</new_text>\n\n</edits>",
+    "parser_metrics": {
+      "tags": 2,
+      "mismatched_tags": 0
+    }
+  }
+}
+```
+
+## Agent
+
+I notice the README.md file has been updated. Let me build and test the TUI mode with the improved loading feedback:
+
+**Use Tool: terminal (toolu_01DhgFdA577FX2aTcrwFvJQr)**
+```json
+{
+  "cd": "VenvCleaner",
+  "command": "cargo build --release --features tui"
+}
+```
+
+**Tool Results: toolu_01DhgFdA577FX2aTcrwFvJQr**
+
+```
+Compiling venv_cleaner v0.1.0 (/Volumes/teaching/Code/VenvCleaner)
+warning: variants `InvalidArgument`, `OperationCancelled`, and `MultipleErrors` are never constructed
+  --> src/core/mod.rs:36:5
+   |
+22 | pub enum VenvCleanerError {
+   |          ---------------- variants in this enum
+...
+36 |     InvalidArgument(String),
+   |     ^^^^^^^^^^^^^^^
+...
+39 |     OperationCancelled,
+   |     ^^^^^^^^^^^^^^^^^^
+...
+45 |     MultipleErrors(Vec<VenvCleanerError>),
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `VenvCleanerError` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+
+warning: method `verbosity` is never used
+   --> src/core/mod.rs:240:12
+    |
+71  | impl VenvCleaner {
+    | ---------------- method in this implementation
+...
+240 |     pub fn verbosity(&self) -> u8 {
+    |            ^^^^^^^^^
+
+warning: methods `project_name` and `summary` are never used
+   --> src/core/venv_info.rs:104:12
+    |
+23  | impl VenvInfo {
+    | ------------- methods in this implementation
+...
+104 |     pub fn project_name(&self) -> Option<String> {
+    |            ^^^^^^^^^^^^
+...
+132 |     pub fn summary(&self) -> String {
+    |            ^^^^^^^
+
+warning: methods `compare_by_created`, `compare_by_last_modified`, and `compare_by_path` are never used
+   --> src/core/venv_info.rs:171:12
+    |
+164 | impl VenvInfo {
+    | ------------- methods in this implementation
+...
+171 |     pub fn compare_by_created(&self, other: &Self)...
+    |            ^^^^^^^^^^^^^^^^^^
+...
+176 |     pub fn compare_by_last_modified(&self, other: ...
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+181 |     pub fn compare_by_path(&self, other: &Self) ->...
+    |            ^^^^^^^^^^^^^^^
+
+warning: associated functions `count_items`, `is_valid_venv_directory`, and `format_path_for_display` are never used
+   --> src/core/file_utils.rs:159:12
+    |
+17  | impl FileUtils {
+    | -------------- associated functions in this implementation
+...
+159 |     pub fn count_items(path: &Path) -> Result<(usi...
+    |            ^^^^^^^^^^^
+...
+189 |     pub fn is_valid_venv_directory(path: &Path) ->...
+    |            ^^^^^^^^^^^^^^^^^^^^^^^
+...
+222 |     pub fn format_path_for_display(path: &Path, ma...
+    |            ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variant `Quit` is never constructed
+  --> src/tui/mod.rs:57:5
+   |
+43 | pub enum AppState {
+   |          -------- variant in this enum
+...
+57 |     Quit,
+   |     ^^^^
+   |
+   = note: `AppState` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: method `previous` is never used
+  --> src/tui/mod.rs:85:12
+   |
+73 | impl SortBy {
+   | ----------- method in this implementation
+...
+85 |     pub fn previous(self) -> Self {
+   |            ^^^^^^^^
+
+warning: method `draw_ui` is never used
+   --> src/tui/mod.rs:429:8
+    |
+105 | impl TuiMode {
+    | ------------ method in this implementation
+...
+429 |     fn draw_ui(&self, f: &mut ratatui::Frame) {
+    |        ^^^^^^^
+
+warning: field `show_details` is never read
+  --> src/tui/app.rs:42:5
+   |
+14 | pub struct TuiApp {
+   |            ------ field in this struct
+...
+42 |     show_details: bool,
+   |     ^^^^^^^^^^^^
+
+warning: fields `successful`, `failed`, and `results` are never read
+  --> src/tui/app.rs:57:9
+   |
+51 | pub struct DeletionProgress {
+   |            ---------------- fields in this struct
+...
+57 |     pub successful: usize,
+   |         ^^^^^^^^^^
+58 |     /// Number of failed deletions
+59 |     pub failed: usize,
+   |         ^^^^^^
+60 |     /// Results of deletion operations (path, success)
+61 |     pub results: Vec<(String, bool)>,
+   |         ^^^^^^^
+   |
+   = note: `DeletionProgress` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: methods `show_details`, `toggle_details`, `set_visible_items`, `visible_items`, `reverse_sort`, and `visible_range` are never used
+   --> src/tui/app.rs:211:12
+    |
+76  | impl TuiApp {
+    | ----------- methods in this implementation
+...
+211 |     pub fn show_details(&self) -> bool {
+    |            ^^^^^^^^^^^^
+...
+216 |     pub fn toggle_details(&mut self) {
+    |            ^^^^^^^^^^^^^^
+...
+226 |     pub fn set_visible_items(&mut self, count: usi...
+    |            ^^^^^^^^^^^^^^^^^
+...
+231 |     pub fn visible_items(&self) -> usize {
+    |            ^^^^^^^^^^^^^
+...
+307 |     pub fn reverse_sort(&mut self) {
+    |            ^^^^^^^^^^^^
+...
+449 |     pub fn visible_range(&self) -> (usize, usize) {
+    |            ^^^^^^^^^^^^^
+
+warning: variants `VenvsLoaded`, `LoadError`, and `DeletionComplete` are never constructed
+  --> src/tui/events.rs:23:5
+   |
+17 | pub enum AppEvent {
+   |          -------- variants in this enum
+...
+23 |     VenvsLoaded(Vec<VenvInfo>),
+   |     ^^^^^^^^^^^
+24 |     /// Error occurred while loading .venv directories
+25 |     LoadError(String),
+   |     ^^^^^^^^^
+26 |     /// Deletion operation completed
+27 |     DeletionComplete(Vec<(VenvInfo, Result<()>)>),
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: `AppEvent` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: field `sender` is never read
+  --> src/tui/events.rs:35:5
+   |
+31 | pub struct EventHandler {
+   |            ------------ field in this struct
+...
+35 |     sender: Sender<AppEvent>,
+   |     ^^^^^^
+
+warning: methods `try_next`, `sender`, `start_venv_loading_task`, and `start_deletion_task` are never used
+   --> src/tui/events.rs:126:12
+    |
+42  | impl EventHandler {
+    | ----------------- methods in this implementation
+...
+126 |     pub fn try_next(&mut self) -> Option<AppEvent> {
+    |            ^^^^^^^^
+...
+139 |     pub fn sender(&self) -> Sender<AppEvent> {
+    |            ^^^^^^
+...
+149 |     pub fn start_venv_loading_task(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^
+...
+182 |     pub fn start_deletion_task(
+    |            ^^^^^^^^^^^^^^^^^^^
+
+warning: methods `matches_shortcut` and `display_string` are never used
+   --> src/tui/events.rs:210:8
+    |
+208 | pub trait KeyboardShortcuts {
+    |           ----------------- methods in this trait
+209 |     /// Check if a key event matches a specific sh...
+210 |     fn matches_shortcut(&self, key: &KeyEvent) -> ...
+    |        ^^^^^^^^^^^^^^^^
+...
+213 |     fn display_string(&self) -> String;
+    |        ^^^^^^^^^^^^^^
+
+warning: multiple variants are never constructed
+   --> src/tui/events.rs:220:5
+    |
+218 | pub enum Shortcut {
+    |          -------- variants in this enum
+219 |     /// Quit the application
+220 |     Quit,
+    |     ^^^^
+221 |     /// Show help
+222 |     Help,
+    |     ^^^^
+223 |     /// Refresh the list
+224 |     Refresh,
+    |     ^^^^^^^
+225 |     /// Move selection up
+226 |     Up,
+    |     ^^
+227 |     /// Move selection down
+228 |     Down,
+    |     ^^^^
+229 |     /// Move to first item
+230 |     Home,
+    |     ^^^^
+231 |     /// Move to last item
+232 |     End,
+    |     ^^^
+233 |     /// Page up
+234 |     PageUp,
+    |     ^^^^^^
+235 |     /// Page down
+236 |     PageDown,
+    |     ^^^^^^^^
+237 |     /// Toggle selection
+238 |     Toggle,
+    |     ^^^^^^
+239 |     /// Select all
+240 |     SelectAll,
+    |     ^^^^^^^^^
+241 |     /// Deselect all
+242 |     DeselectAll,
+    |     ^^^^^^^^^^^
+243 |     /// Delete selected items
+244 |     Delete,
+    |     ^^^^^^
+245 |     /// Sort by different criteria
+246 |     Sort,
+    |     ^^^^
+247 |     /// Open folder
+248 |     OpenFolder,
+    |     ^^^^^^^^^^
+249 |     /// Confirm action
+250 |     Confirm,
+    |     ^^^^^^^
+251 |     /// Cancel action
+252 |     Cancel,
+    |     ^^^^^^
+    |
+    = note: `Shortcut` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `get_shortcuts_for_state` is never used
+   --> src/tui/events.rs:338:8
+    |
+338 | pub fn get_shortcuts_for_state(state: &crate::tui:...
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `venv_cleaner` (bin "venv_cleaner") generated 17 warnings
+    Finished `release` profile [optimized] target(s) in 15.61s
+```
+## Agent
+
+Perfect! Now let's test the TUI mode to see the improved loading feedback:
+
+**Use Tool: terminal (toolu_01V33jmh5pyHGrDK7hLUdXc3)**
+```json
+{
+  "cd": "VenvCleaner",
+  "command": "./target/release/venv_cleaner --tui"
+}
+```
+
+**Tool Results: toolu_01V33jmh5pyHGrDK7hLUdXc3 (Error)**
+
+Permission to run tool action denied by user
