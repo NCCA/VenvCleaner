@@ -1,0 +1,11 @@
+You are to use rust as the programming language. 
+You can use any libraries that are required and these  can be installed via cargo
+
+All code should have full comments and explainations and use the rust styleguide
+
+This app is designed to work in three modes
+
+1. cli with command lines
+2. tui with simple interface
+3. gui which will use Qt6 rust bindings
+

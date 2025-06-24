@@ -1,0 +1,72 @@
+[package]
+name = "venv_cleaner"
+version = "0.1.0"
+edition = "2021"
+authors = ["VenvCleaner Team"]
+description = "A multi-mode application to help manage and clean up .venv folders on Mac and Linux"
+license = "MIT"
+repository = "https://github.com/your-org/venv-cleaner"
+keywords = ["venv", "cleanup", "python", "virtual-environment"]
+categories = ["command-line-utilities", "filesystem"]
+
+[[bin]]
+name = "venv_cleaner"
+path = "src/main.rs"
+
+[dependencies]
+# CLI argument parsing
+clap = { version = "4.4", features = ["derive", "cargo"] }
+
+# File system operations and utilities
+walkdir = "2.4"
+fs_extra = "1.3"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Async runtime (for potential future use)
+tokio = { version = "1.0", features = ["full"], optional = true }
+
+# TUI dependencies (optional, for future TUI mode)
+ratatui = { version = "0.24", optional = true }
+crossterm = { version = "0.27", optional = true }
+
+# GUI dependencies (optional, for future GUI mode)
+cxx-qt = { version = "0.6", optional = true }
+
+# Date/time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Colored output for CLI
+colored = "2.0"
+
+# Progress bars and indicators
+indicatif = "0.17"
+
+# Logging
+log = "0.4"
+env_logger = "0.10"
+
+[dev-dependencies]
+tempfile = "3.8"
+
+[features]
+default = ["cli"]
+cli = []
+tui = ["ratatui", "crossterm"]
+gui = ["cxx-qt"]
+async = ["tokio"]
+
+[profile.release]
+# Optimize for size and performance
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+# Fast compilation for development
+opt-level = 0
+debug = true
