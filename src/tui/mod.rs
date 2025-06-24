@@ -144,6 +144,16 @@ impl TuiMode {
     pub fn run(&mut self) -> Result<()> {
         info!("Starting TUI mode");
 
+        // Set initial loading state before drawing anything
+        self.app.set_state(AppState::Loading);
+        self.app.set_status("Initializing VenvCleaner TUI...".to_string());
+
+        // Draw initial loading screen immediately
+        self.terminal.draw(|f| {
+            let size = f.size();
+            ui::draw_loading_screen(f, size, &self.app);
+        })?;
+
         // Start loading .venv directories in the background
         self.start_loading_venvs()?;
 
@@ -217,14 +227,43 @@ impl TuiMode {
     fn start_loading_venvs(&mut self) -> Result<()> {
         self.app.set_state(AppState::Loading);
         let search_mode = if self.cleaner.is_recursive() { "recursively" } else { "in current directory" };
-        self.app.set_status(format!("Searching for .venv directories {}...", search_mode));
+        self.app.set_status(format!("🔍 Scanning for .venv directories {}...", search_mode));
+
+        // Draw initial scanning message
+        self.terminal.draw(|f| {
+            let size = f.size();
+            ui::draw_loading_screen(f, size, &self.app);
+        })?;
+
+        // Update status to show we're analyzing directories
+        self.app.set_status(format!("📁 Analyzing directories {}...", search_mode));
+
+        // Draw updated status
+        self.terminal.draw(|f| {
+            let size = f.size();
+            ui::draw_loading_screen(f, size, &self.app);
+        })?;
 
         // In a real implementation, this would spawn a background task
         // For now, we'll do it synchronously but show the loading state
+
+        // Add a brief delay to show the scanning message
+        std::thread::sleep(std::time::Duration::from_millis(200));
+
         let venvs = self.cleaner.find_venv_directories();
 
         match venvs {
             Ok(venvs) => {
+                // Show completion message briefly
+                self.app.set_status(format!("✅ Scan complete! Processing {} directories...", venvs.len()));
+                self.terminal.draw(|f| {
+                    let size = f.size();
+                    ui::draw_loading_screen(f, size, &self.app);
+                })?;
+
+                // Brief delay to show completion message
+                std::thread::sleep(std::time::Duration::from_millis(300));
+
                 self.app.set_venvs(venvs);
                 self.app.set_state(AppState::Browsing);
                 let count = self.app.venvs().len();

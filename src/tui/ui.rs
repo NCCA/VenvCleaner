@@ -395,24 +395,85 @@ pub fn draw_loading_screen(f: &mut ratatui::Frame, area: Rect, app: &TuiApp) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Percentage(40),
-            Constraint::Length(3),
-            Constraint::Percentage(60),
+            Constraint::Percentage(20),
+            Constraint::Length(8),
+            Constraint::Percentage(20),
+            Constraint::Length(5),
+            Constraint::Percentage(50),
         ])
         .split(area);
 
+    // Title
+    let title_text = vec![
+        Line::from(vec![
+            Span::styled("VenvCleaner TUI", Style::default().fg(Colors::PRIMARY).add_modifier(Modifier::BOLD)),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("🔍 Scanning for .venv directories...", Style::default().fg(Colors::SECONDARY)),
+        ]),
+    ];
+
+    let title_paragraph = Paragraph::new(title_text)
+        .alignment(Alignment::Center)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Colors::PRIMARY))
+                .title("Initializing")
+        );
+
+    // Loading animation
     let loading_text = format!("Loading{}", ".".repeat(app.loading_dots()));
     let loading_paragraph = Paragraph::new(loading_text)
-        .style(Style::default().fg(Colors::PRIMARY))
+        .style(Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD))
         .alignment(Alignment::Center);
 
-    let status_text = app.status();
-    let status_paragraph = Paragraph::new(status_text)
-        .style(Style::default().fg(Colors::MUTED))
+    // Status and directory info
+    let status_lines = vec![
+        Line::from(vec![
+            Span::styled("Directory: ", Style::default().fg(Colors::SECONDARY)),
+            Span::raw(app.current_directory().display().to_string()),
+        ]),
+        Line::from(vec![
+            Span::styled("Mode: ", Style::default().fg(Colors::SECONDARY)),
+            Span::raw(if app.is_recursive() { "Recursive search" } else { "Current directory only" }),
+        ]),
+        Line::from(""),
+        Line::from(app.status()),
+    ];
+
+    let status_paragraph = Paragraph::new(status_lines)
+        .alignment(Alignment::Center)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Colors::MUTED))
+                .title("Status")
+        );
+
+    // Help text during loading
+    let help_lines = vec![
+        Line::from(vec![
+            Span::styled("Please wait while scanning directories...", Style::default().fg(Colors::MUTED)),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Press ", Style::default().fg(Colors::MUTED)),
+            Span::styled("q", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),
+            Span::styled(" or ", Style::default().fg(Colors::MUTED)),
+            Span::styled("Esc", Style::default().fg(Colors::WARNING).add_modifier(Modifier::BOLD)),
+            Span::styled(" to quit", Style::default().fg(Colors::MUTED)),
+        ]),
+    ];
+
+    let help_paragraph = Paragraph::new(help_lines)
         .alignment(Alignment::Center);
 
-    f.render_widget(loading_paragraph, chunks[1]);
-    f.render_widget(status_paragraph, chunks[2]);
+    f.render_widget(title_paragraph, chunks[1]);
+    f.render_widget(loading_paragraph, chunks[2]);
+    f.render_widget(status_paragraph, chunks[3]);
+    f.render_widget(help_paragraph, chunks[4]);
 }
 
 /// Draw the confirmation dialog
