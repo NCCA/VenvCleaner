@@ -32,8 +32,15 @@ tokio = { version = "1.0", features = ["full"], optional = true }
 ratatui = { version = "0.24", optional = true }
 crossterm = { version = "0.27", optional = true }
 
-# GUI dependencies (optional, for future GUI mode)
-cxx-qt = { version = "0.6", optional = true }
+# GUI dependencies (optional, for GUI mode using egui)
+eframe = { version = "0.24", optional = true, default-features = false, features = [
+    "accesskit",     # Make egui compatible with screen readers. NOTE: adds a lot of dependencies.
+    "default_fonts", # Embed the default egui fonts.
+    "glow",          # Use glow for rendering (OpenGL ES 2.0 / WebGL).
+    "persistence",   # Enable restoring app state when restarting the app.
+] }
+egui = { version = "0.24", optional = true }
+serde = { version = "1.0", features = ["derive"], optional = true }
 
 # Date/time handling
 chrono = { version = "0.4", features = ["serde"] }
@@ -43,6 +50,15 @@ colored = "2.0"
 
 # Progress bars and indicators
 indicatif = "0.17"
+
+# Opening files/folders in system default applications
+open = "5.0"
+
+# Native file dialogs (GUI mode only)
+rfd = { version = "0.11", optional = true }
+
+# Standard directories (home, documents, etc.)
+dirs = "5.0"
 
 # Logging
 log = "0.4"
@@ -55,7 +71,7 @@ tempfile = "3.8"
 default = ["cli"]
 cli = []
 tui = ["ratatui", "crossterm"]
-gui = ["cxx-qt"]
+gui = ["eframe", "egui", "serde", "rfd"]
 async = ["tokio"]
 
 [profile.release]

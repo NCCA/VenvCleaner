@@ -112,4 +112,22 @@ I've not actually looked at any of the code generated or how the project actuall
 
 I prompted the agent to develop the tui mode for me an let it work whilst I got breakfast (it is 6.30 am). This took about 20 minutes so managed to do the washing up too!
 
-At some stage the Agent asked me to turn on [Burn Mode](https://zed.dev/docs/ai/models#burn-mode) this seems to eat up the free usage I have (44/50) I switched to the pro trial for 14 days to give it a go. 
+At some stage the Agent asked me to turn on [Burn Mode](https://zed.dev/docs/ai/models#burn-mode) this seems to eat up the free usage I have (44/50) I switched to the pro trial for 14 days to give it a go.
+
+## Some upgrades.
+
+The basic TUI system was working well but I wanted to make a few updates after using it. The main one was to get it to add feedback to the user and show the tui when scanning the directories. This worked well.
+
+## GUI Mode
+
+Next I wanted to add a gui mode, however after a little bit of reading I decided not to use the Qt rust bindings as it seems a little over complicated for what I needed. There are a number of [gui libraries](https://simplifycpp.org/?id=a0507) for rust, in the end I decided to use [egui](https://github.com/emilk/egui) as it seemed the simplest one. First thing I did was to update the .rules file.
+
+```
+3. gui which will use egui rust bindings
+```
+
+I have quite a large context window now (144k/200k) so this may cause some issues. but I added the prompt
+
+{{< highlight text >}}
+
+{{< /highlight  >}}

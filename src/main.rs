@@ -16,11 +16,15 @@ mod cli;
 mod core;
 #[cfg(feature = "tui")]
 mod tui;
+#[cfg(feature = "gui")]
+mod gui;
 
 use cli::CliMode;
 use core::VenvCleanerError;
 #[cfg(feature = "tui")]
 use tui::TuiMode;
+#[cfg(feature = "gui")]
+use gui::GuiMode;
 
 /// Main entry point for the VenvCleaner application
 fn main() {
@@ -156,10 +160,26 @@ fn run_application(matches: &ArgMatches) -> Result<(), VenvCleanerError> {
         AppMode::Gui => {
             #[cfg(feature = "gui")]
             {
-                // GUI mode implementation will be added in future iterations
-                println!("GUI mode is not yet implemented. Please use CLI mode for now.");
-                println!("Use 'venv_cleaner --help' to see available CLI options.");
-                Ok(())
+                // Extract GUI-specific arguments
+                let base_directory = if let Some(dir) = matches.get_one::<String>("directory") {
+                    std::path::PathBuf::from(dir)
+                } else {
+                    std::env::current_dir()?
+                };
+
+                // GUI mode defaults to recursive unless explicitly disabled
+                let recursive = if matches.get_flag("no-recursive") {
+                    false
+                } else if matches.get_flag("recursive") {
+                    true
+                } else {
+                    true // Default to recursive for GUI mode
+                };
+                let verbosity = matches.get_count("verbose");
+
+                // Create and run GUI mode
+                let gui_mode = GuiMode::new(base_directory, recursive, verbosity)?;
+                gui_mode.run()
             }
             #[cfg(not(feature = "gui"))]
             {
